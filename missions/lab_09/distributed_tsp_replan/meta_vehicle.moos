@@ -1,0 +1,84 @@
+ServerHost = localhost
+ServerPort = $(VPORT)
+
+// Community name IS the vehicle name
+Community  = $(VNAME)
+
+#include plug_origin_warp.moos
+  
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 50
+   
+  Run = MOOSDB             @ NewConsole = false
+  Run = uSimMarine         @ NewConsole = false
+  Run = pLogger            @ NewConsole = false
+  Run = pNodeReporter      @ NewConsole = false
+  Run = pMarinePID         @ NewConsole = false
+  Run = pHelmIvP           @ NewConsole = false
+  Run = uProcessWatch      @ NewConsole = false
+  Run = pShare             @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = uXMS	           @ NewConsole = true
+  Run = pGenPath           @ NewConsole = true
+  //Run = uTimerScript	   @ NewConsole = false
+
+}
+ 
+#include plug_uSimMarine.moos
+#include plug_pLogger.moos
+#include plug_pNodeReporter.moos
+#include plug_pMarinePID.moos
+#include plug_pHelmIvP.moos
+#include plug_uProcessWatch.moos
+#include plug_pShare.moos
+#include plug_pHostInfo.moos
+#include plug_uFldNodeBroker.moos
+#include plug_pGenPath.moos
+
+//--------------------------------------------------------------
+ProcessConfig = uXMS                                            
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+                                                                
+  var    = aaa,NAV_X,NAV_Y,RETURN,WPT_INDEX,GENPATH_REGENERATE,UPDATES_VAR//VISIT_POINT_HENRY,VISIT_POINT_GILDA,VISIT_POINT                                                    
+
+  //history_var           = UPDATES_VAR //history_var can only show one parameter's history once a time
+  history_var           = aaa//UPDATES_VAR                         
+                                                              
+  display_virgins       = true    // default                    
+  display_source        = false   // default                    
+  display_aux_source    = false   // default                    
+  display_time          = false   // default                    
+  display_community     = false   // default                    
+  display_all           = false   // default                    
+  //trunc_data            = 100   // default is no trucation.   
+                                                                
+  term_report_interval  = 0.6     // default (seconds)          
+                                                                                                                                
+  refresh_mode = events     // default (or streaming/paused)    
+  content_mode = scoping    // default (or history,procs)    
+}
+//---------------------------------------------------------------
+ ProcessConfig = uTimerScript                                    
+ {                                                         
+   //rand_var    = varname=RND_VAL, min= -25, max=200, key=at_post
+   //rand_var    = varname=RND_VAL2, min= -175, max= -25, key=at_post
+
+
+   
+   //pPointAssign
+   event = var=aaa, val="firstpoint", time=1
+   //event = var=aaa, val="x=$[RND_VAL], y=$[RND_VAL2], unique_id=$[TCOUNT]", time=5, amt=3
+   event = var=aaa, val="x=0.5, y=0.5, unique_id=1", time=5
+   event = var=aaa, val="x=-1, y=-1, unique_id=2", time=5
+   event = var=aaa, val="x=4, y=4, unique_id=3", time=5
+   event = var=aaa, val="x=7, y=7, unique_id=4", time=5
+   event = var=aaa, val="lastpoint", time=7
+
+ }
+//--------------------------------------------------------
+

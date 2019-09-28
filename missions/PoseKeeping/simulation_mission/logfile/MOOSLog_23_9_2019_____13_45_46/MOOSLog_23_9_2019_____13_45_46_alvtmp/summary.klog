@@ -1,0 +1,90 @@
+total_vars=82
+logstart=7846303734.06
+logtmin=0.111
+logtmax=1129.525
+vname=logan
+vtype=kayak
+vcolor=yellow
+vlength=4
+var=1, type=double, srcs=pPoseKeeping
+var=2, type=double, srcs=pPoseKeeping
+var=3, type=double, srcs=pPoseKeeping
+var=4, type=double, srcs=pPoseKeeping
+var=5, type=double, srcs=pPoseKeeping
+var=APPCAST, type=string, srcs=pHelmIvP:pMarineViewer:pNodeReporter:pPoseKeeping:uProcessWatch:uSimMarine:uTimerScript:uXMS_494
+var=APPCAST_REQ, type=string, srcs=pMarineViewer:uMAC_1244
+var=APPCAST_REQ_ALL, type=string, srcs=pMarineViewer:uMAC_1244
+var=APPCAST_REQ_LOGAN, type=string, srcs=pMarineViewer:uMAC_1244
+var=DB_CLIENTS, type=string, srcs=MOOSDB_logan
+var=DB_EVENT, type=string, srcs=MOOSDB_logan
+var=DB_QOS, type=string, srcs=MOOSDB_logan
+var=DB_TIME, type=double, srcs=MOOSDB_logan
+var=DB_UPTIME, type=double, srcs=MOOSDB_logan
+var=DEPLOY, type=string, srcs=pHelmIvP
+var=DESIRED_HEADING, type=double, srcs=pHelmIvP
+var=DESIRED_RUDDER, type=double, srcs=pMarinePID
+var=DESIRED_SPEED, type=double, srcs=pHelmIvP
+var=DESIRED_THRUST, type=double, srcs=pMarinePID
+var=DESIRED_THRUST_L, type=double, srcs=pPoseKeeping
+var=DESIRED_THRUST_R, type=double, srcs=pPoseKeeping
+var=D_T, type=double, srcs=pPoseKeeping
+var=ERROR, type=double, srcs=pPoseKeeping
+var=E_X, type=double, srcs=pPoseKeeping
+var=HELM_MAP_CLEAR, type=double, srcs=pMarineViewer
+var=IVPHELM_ALLSTOP, type=string, srcs=pHelmIvP
+var=IVPHELM_ALLSTOP_DEBUG, type=string, srcs=pHelmIvP
+var=IVPHELM_CPU, type=double, srcs=pHelmIvP
+var=IVPHELM_DOMAIN, type=string, srcs=pHelmIvP
+var=IVPHELM_MODESET, type=string, srcs=pHelmIvP
+var=IVPHELM_REGISTER, type=string, srcs=pHelmIvP
+var=IVPHELM_STATE, type=string, srcs=pHelmIvP
+var=LOGGER_DIRECTORY, type=string, srcs=pLogger
+var=MOOS_DEBUG, type=string, srcs=pHelmIvP:pMarinePID
+var=NAV_DEPTH, type=double, srcs=uSimMarine
+var=NAV_HEADING, type=double, srcs=uSimMarine
+var=NAV_HEADING_OVER_GROUND, type=double, srcs=uSimMarine
+var=NAV_LAT, type=double, srcs=uSimMarine
+var=NAV_LONG, type=double, srcs=uSimMarine
+var=NAV_PITCH, type=double, srcs=uSimMarine
+var=NAV_SPEED, type=double, srcs=uSimMarine
+var=NAV_SPEED_OVER_GROUND, type=double, srcs=uSimMarine
+var=NAV_X, type=double, srcs=uSimMarine
+var=NAV_Y, type=double, srcs=uSimMarine
+var=NAV_YAW, type=double, srcs=uSimMarine
+var=NAV_Z, type=double, srcs=uSimMarine
+var=NODE_REPORT_LOCAL, type=string, srcs=pNodeReporter
+var=NODE_REPORT_LOCAL_FIRST, type=string, srcs=pNodeReporter
+var=ONHELMSTART, type=double, srcs=pHelmIvP
+var=PHELMIVP_ITER_GAP, type=double, srcs=pHelmIvP
+var=PHELMIVP_ITER_LEN, type=double, srcs=pHelmIvP
+var=PHELMIVP_PID, type=double, srcs=pHelmIvP
+var=PLOGGER_CMD, type=string, srcs=pHelmIvP
+var=PMARINEVIEWER_ITER_GAP, type=double, srcs=pMarineViewer
+var=PMARINEVIEWER_ITER_LEN, type=double, srcs=pMarineViewer
+var=PMARINEVIEWER_PID, type=double, srcs=pMarineViewer
+var=PMV_CONNECT, type=double, srcs=pMarineViewer
+var=PNODEREPORTER_ITER_GAP, type=double, srcs=pNodeReporter
+var=PNODEREPORTER_ITER_LEN, type=double, srcs=pNodeReporter
+var=PPOSEKEEPING_ITER_GAP, type=double, srcs=pPoseKeeping
+var=PPOSEKEEPING_ITER_LEN, type=double, srcs=pPoseKeeping
+var=PROC_WATCH_EVENT, type=string, srcs=uProcessWatch
+var=PROC_WATCH_FULL_SUMMARY, type=string, srcs=uProcessWatch
+var=PROC_WATCH_SUMMARY, type=string, srcs=uProcessWatch
+var=PROC_WATCH_TIME_WARP, type=double, srcs=uProcessWatch
+var=READY, type=string, srcs=pHelmIvP
+var=RETURN, type=string, srcs=pHelmIvP
+var=SIMULATION_MODE, type=string, srcs=uSimMarine
+var=THRUST_MODE_DIFFERENTIAL, type=string, srcs=uTimerScript
+var=TRUE_X, type=double, srcs=uSimMarine
+var=TRUE_Y, type=double, srcs=uSimMarine
+var=UPROCESSWATCH_ITER_GAP, type=double, srcs=uProcessWatch
+var=UPROCESSWATCH_ITER_LEN, type=double, srcs=uProcessWatch
+var=USIMMARINE_ITER_GAP, type=double, srcs=uSimMarine
+var=USIMMARINE_ITER_LEN, type=double, srcs=uSimMarine
+var=USM_DRIFT_SUMMARY, type=string, srcs=uSimMarine
+var=USM_FSUMMARY, type=string, srcs=uSimMarine
+var=UTIMERSCRIPT_ITER_GAP, type=double, srcs=uTimerScript
+var=UTIMERSCRIPT_ITER_LEN, type=double, srcs=uTimerScript
+var=UXMS_494_ITER_GAP, type=double, srcs=uXMS_494
+var=UXMS_494_ITER_LEN, type=double, srcs=uXMS_494
+var=VISUALS, type=string, srcs=pPoseKeeping

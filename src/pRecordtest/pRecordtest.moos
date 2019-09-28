@@ -1,0 +1,59 @@
+SeverHost = localhost
+SeverPort = 9000
+Community = test
+//Simulator = true
+
+//------------------------------------------------
+// ANTLER 
+
+ProcessConfig = ANTLER
+{
+    MSBetweenLaunches = 200
+    Run = MOOSDB       @ NewConsole = false
+    Run = uXMS         @ NewConsole = true
+    Run = uTimerScript @ NewConsole = false
+    Run = pRecordtest  @ NewConsole = true
+    Run = pLogger      @ NewConsole = false
+}
+//------------------------------------------------
+// pRecordtest config block
+
+ProcessConfig = pRecordtest
+{
+   AppTick   = 10
+   CommsTick = 10
+
+   DEVICE = plughw0:0  //pStoreSound bug 1channel 
+   BITS   =  32  //fix, due to recorder
+   CHANNELS = 2 //check!!!! fix, cannot be changed
+   SAMPLE_RATE = 48000
+   FRAMES = 4800
+}
+//------------------------------------------------
+ProcessConfig = uXMS
+{
+   AppTick   = 10
+   CommsTick = 10
+   VAR = OPEN_SUCCESS,OUTPUT_SUCCESS//FRAMES_PER_PERIOD,START_RECORD
+   HISTORY_VAR = START_RECORD
+}
+//----------------------------------------------
+ProcessConfig = uTimerScript
+{
+   AppTick   = 4
+   CommsTick = 4
+   paused = false
+   event  = var=START_RECORD, val="true",  time=1
+   reset_max  = nolimit    
+   //reset_time = all-posted 
+} 
+//----------------------------------------------
+ProcessConfig = pLogger
+{
+
+  AsyncLog = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+
+  LOG = RESULT @ 0
+}

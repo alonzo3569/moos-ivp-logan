@@ -1,0 +1,63 @@
+SeverHost = localhost
+SeverPort = 9000
+Simulator = true
+
+//------------------------------------------------
+// ANTLER 
+
+ProcessConfig = ANTLER
+{
+    MSBetweenLaunches = 200
+    Run = MOOSDB       @ NewConsole = false
+    Run = uXMS         @ NewConsole = false
+    Run = uTimerScript @ NewConsole = false
+    Run = pPrimeFactor @ NewConsole = true
+    Run = pLogger      @ NewConsole = false
+}
+//------------------------------------------------
+// pPrimeFactor config block
+ProcessConfig = pPrimeFactor
+{
+   AppTick   = 4
+   CommsTick = 4
+
+}
+//------------------------------------------------
+//
+ProcessConfig = uXMS
+{
+   AppTick   = 4
+   CommsTick = 4
+   VAR = NUM_VALUE
+   HISTORY_VAR = NUM_VALUE
+}
+//----------------------------------------------
+ProcessConfig = uTimerScript
+{
+   AppTick   = 4
+   CommsTick = 4
+   //pause_var = fucK
+// pause_var = UTS_PAUSE
+ paused = false
+//   event  = var=NUM_VALUE, val="$(2)",  time=0.25
+//   event  = var=NUM_VALUE, val="$(2)",  time=0.5
+//   event  = var=NUM_VALUE, val="$(2)",  time=0.75
+   event  = var=NUM_VALUE, val="$(2)",  time=1
+//   event  = var=NUM_VALUE, val=16,  time=3.0 
+//   event  = var=NUM_VALUE, val=17,  time=3.5 
+//   event  = var=NUM_VALUE, val=18,  time=4.0 
+//   event  = var=NUM_VALUE, val=19,  time=4.5 
+//   event  = var=NUM_VALUE, val=20, time=5
+//reset_max  = nolimit    
+reset_time = all-posted 
+} 
+//----------------------------------------------
+ProcessConfig = pLogger
+{
+
+  AsyncLog = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+
+  LOG = RESULT @ 0
+}

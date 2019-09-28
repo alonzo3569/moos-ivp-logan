@@ -1,0 +1,2 @@
+aloggrep - Processing on file: MOOSLog_21_5_2019_____04_36_18.alog
+input not found or unable to open - exiting

@@ -1,0 +1,9 @@
+//------------------------------------------------
+// pNumberCal config block
+
+ProcessConfig = pNumberCal
+{
+   AppTick   = 4
+   CommsTick = 4
+}
+

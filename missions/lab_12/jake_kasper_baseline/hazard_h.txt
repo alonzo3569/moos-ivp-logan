@@ -1,0 +1,16 @@
+// gen_hazards --polygon=-100,0:-100,-300:300,-300:300,0 --objects=5,hazard --objects=8,benign --exp=4
+region = pts={-100,0:-100,-300:300,-300:300,0}
+hazard = x=235,y=-32,label=75,type=hazard
+hazard = x=-13,y=-180,label=37,type=hazard
+hazard = x=139,y=-150,label=80,type=hazard
+hazard = x=100,y=-273,label=10,type=hazard
+hazard = x=-62,y=-214,label=87,type=hazard
+region = pts={-100,0:-100,-300:300,-300:300,0}
+hazard = x=223,y=-199,label=50,type=benign,hr=0.27174
+hazard = x=166,y=-139,label=9,type=benign,hr=0.00678
+hazard = x=55,y=-30,label=1,type=benign,hr=0.44773
+hazard = x=286,y=-101,label=43,type=benign,hr=0.16157
+hazard = x=-74,y=-91,label=64,type=benign,hr=0
+hazard = x=270,y=-113,label=90,type=benign,hr=0.06872
+hazard = x=9,y=-71,label=57,type=benign,hr=0.14213
+hazard = x=-33,y=-239,label=29,type=benign,hr=0.00001

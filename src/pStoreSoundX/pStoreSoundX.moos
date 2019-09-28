@@ -1,0 +1,48 @@
+// yhhuang
+
+ServerHost = localhost
+ServerPort = 9000
+Community = test
+
+ProcessConfig = ANTLER
+{
+  Run = MOOSDB      @ NewConsole = false
+  Run = pStoreSoundX @ NewConsole = false
+  Run = pLogger     @ NewConsole = false
+}
+
+
+//------------------------------------------------
+// pStoreSoundX config block
+
+//Set 10 Frames per second
+
+ProcessConfig = pStoreSoundX
+{
+   AppTick   = 10
+   CommsTick = 10
+
+  PATH = ./
+  SAMPLE_RATE = 96000
+  CHANNELS = 2
+  RECORD_DEVICE = hw:1,0
+  BITS = 32
+  RECORD_TIME = 3
+  PASS_TIME = 20
+  FRAMES = 9600
+  REPEAT = false
+  SEND_SIZE = 9600
+  TOTAL_CHANNEL = 2
+  SAVE_FILE = false 
+  USE_JETSON = true
+}
+
+ProcessConfig = pLogger
+{
+    AsyncLog = true
+    WildCardLogging = true 
+    WildCardOmitPattern = *_STATUS
+
+    LOG = SOUND_VOLTAGE_DATA_CH_ONE @ 0
+    LOG = SOUND_VOLTAGE_DATA_CH_TWO @ 0
+}

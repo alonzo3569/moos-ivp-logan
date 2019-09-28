@@ -1,0 +1,31 @@
+// By CTHung
+
+ServerHost = localhost
+ServerPort = 9000
+Community = test
+
+ProcessConfig = ANTLER
+{
+  Run = MOOSDB      @ NewConsole = false
+  Run = pStoreSound @ NewConsole = false
+}
+
+
+//------------------------------------------------
+// pStoreSound config block
+
+ProcessConfig = pStoreSound
+{
+   AppTick   = 10
+   CommsTick = 10
+  PATH = ./
+  SAMPLE_RATE = 48000
+  CHANNELS = 2
+  RECORD_DEVICE = hw:0,0
+  BITS = 16
+  RECORD_TIME = 3
+  PASS_TIME = 20
+  FRAMES = 4800
+  REPEAT = false
+}
+

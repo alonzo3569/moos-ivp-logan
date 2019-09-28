@@ -1,0 +1,24 @@
+//--------------------------------------------------------------
+ProcessConfig = uXMS                                            
+{                                                               
+  AppTick   = 4                                                 
+  CommsTick = 4                                                 
+                                                                
+  var    = NODE_MESSAGE_LOCAL,TIMER_END_HENRY,TIMER_END_GILDA//,BLOCK_NUM,BBB  //VISIT_POINT_HENRY,VISIT_POINT_GILDA,VISIT_POINT                                                    
+
+  //history_var           = VISIT_POINT_HENRY //history_var can only show one parameter's history once a time
+  history_var           = TIMER_END_HENRY                       
+                                                              
+  display_virgins       = true    // default                    
+  display_source        = false   // default                    
+  display_aux_source    = false   // default                    
+  display_time          = false   // default                    
+  display_community     = false   // default                    
+  display_all           = false   // default                    
+  //trunc_data            = 100   // default is no trucation.   
+                                                                
+  term_report_interval  = 0.6     // default (seconds)          
+                                                                                                                                
+  refresh_mode = events     // default (or streaming/paused)    
+  content_mode = scoping    // default (or history,procs)    
+}

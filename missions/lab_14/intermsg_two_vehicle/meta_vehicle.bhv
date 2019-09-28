@@ -1,0 +1,154 @@
+//--------    FILE: alpha.bhv   -------------
+
+initialize   DEPLOY = false
+initialize   RETURN = false
+//initialize   CIRCLE_SINE = $(CIRCLE_SINE)
+//initialize   SINE = $(SINE)
+initialize   CIRCLE_SINE = false
+initialize   SINE = false
+	
+//----------------------------------------------
+//Behavior = BHV_Waypoint
+//{ 
+//  name      = waypt_survey
+//  pwt       = 100
+//  condition = RETURN = false
+//  condition = DEPLOY = true
+//  endflag   = RETURN = true
+//  //endflag   = ZIG_LEG = false
+//
+//  updates    = UPDATES_VAR
+//  perpetual  = true
+//
+//                lead = 8
+//         lead_damper = 1
+//       lead_to_start = true
+//               speed = 12   // meters per second
+//        capture_line = true
+//      capture_radius = 5.0
+//         slip_radius = 15.0
+//	efficiency_measure = all
+//
+//             polygon = 60,-40 : 60,-160 : 150,-160 : 180,-100 : 150,-40
+//
+//               order = normal
+//             repeat  = 1
+//
+//    visual_hints = nextpt_color=yellow
+//    visual_hints = nextpt_vertex_size=8
+//    visual_hints = nextpt_lcolor=gray70
+//    visual_hints = vertex_color=dodger_blue, edge_color=white
+//    visual_hints = vertex_size=5, edge_size=1
+//}
+//
+//----------------------------------------------
+Behavior=BHV_Waypoint
+{
+  name       = waypt_return
+  pwt        = 100
+  condition  = RETURN = true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = RETURN_UPDATE
+  endflag    = RETURN = false
+  endflag    = DEPLOY = false
+  endflag    = MISSION = complete
+	
+           speed = 2.0
+  capture_radius = 2.0
+     slip_radius = 8.0
+     points = $(START_POS)
+ }
+
+//----------------------------------------------
+Behavior=BHV_ConstantSpeed
+{
+  name       = const_speed
+  pwt        = 200
+  condition  = SPD=true
+  condition  = DEPLOY = true
+  perpetual  = true
+  updates    = SPEED_UPDATE
+  endflag    = SPD = false
+
+     speed = 0.5
+  duration = 10
+  duration_reset = CONST_SPD_RESET=true
+	
+}
+//----------------------------------------------
+   Behavior=BHV_circle_sine
+   {
+     name = circle_sine
+     pwt        = 100
+     condition  = CIRCLE_SINE = true
+
+     center_x       = $(CIRCLE_X)
+     center_y       = $(CIRCLE_Y)
+     arrival_radius = 5
+     circle_radius  = 50//50,75
+     resolution = 30//30,60
+   }
+//----------------------------------------------
+   Behavior=BHV_sine
+   {
+     name = sine
+     pwt        = 100
+     condition   = SINE = true
+
+     start_x       = $(SINE_X)
+     start_y       = $(SINE_Y)
+     amplitude = 50
+     w  = 3//3,5
+     full_length = 100
+     arrival_radius = 10
+     resolution = 180//180,360
+   }
+
+//----------------------------------------------
+ Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = first               // default
+   condition = CIRCLE_SINE = true
+   //runflag = TIMER_END_$(VNAME) = 0
+
+   duration     = 180                  // example
+   perpetual  = true
+   duration_status = CIRCLE_LEFT      //scope
+   duration_idle_decay = false
+   //duration_reset = TIMER_RESET = true
+   endflag      = CIRCLE_SINE = false
+   endflag    = SINE = true
+   endflag    = TIMER_END_$(VNAME) = 1
+   //endflag    = TIMER_END_$(VNAME) = 0
+
+   //updates      = TIMER_UPDATES        // example
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }
+//----------------------------------------------
+ Behavior = BHV_Timer
+ {
+   // General Behavior Parameters
+   // ---------------------------
+   name         = second           // default
+   condition = SINE = true
+   //runflag = TIMER_END_$(VNAME) = 0
+   duration     = 180                  // example
+   perpetual  = true
+   duration_status = SINE_LEFT
+   duration_idle_decay = false
+   endflag      = SINE = false
+   endflag      = CIRCLE_SINE = true
+   endflag    = TIMER_END_$(VNAME) = 1
+   //endflag    = TIMER_END_$(VNAME) = 0
+
+   // Parameters specific to this behavior
+   // ------------------------------------
+   // None
+ }
+
