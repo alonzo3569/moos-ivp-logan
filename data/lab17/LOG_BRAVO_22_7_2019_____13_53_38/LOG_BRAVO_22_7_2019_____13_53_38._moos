@@ -1,0 +1,368 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LOG FILE:       ./LOG_BRAVO_22_7_2019_____13_53_38/LOG_BRAVO_22_7_2019_____13_53_38._moos
+%% FILE OPENED ON  Thu Jan  1 00:00:00 1970
+%% LOGSTART               1563803618.06
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ServerHost = localhost
+ServerPort = 9002
+
+// Community name IS the vehicle name
+Community  = bravo
+
+MOOSTimeWarp = 1
+//LatOrigin  = 43.825300 
+//LongOrigin = -70.330400 
+LatOrigin  = 42.3584
+LongOrigin = -71.08745
+
+  
+//------------------------------------------------------------
+Processconfig = ANTLER
+{
+  MSBetweenLaunches = 100
+   
+  Run = MOOSDB             @ NewConsole = false
+  Run = iM200              @ NewConsole = false
+  Run = pLogger            @ NewConsole = false
+  Run = pNodeReporter      @ NewConsole = false
+  Run = pMarinePID         @ NewConsole = false
+  Run = pHelmIvP           @ NewConsole = false
+  Run = uProcessWatch      @ NewConsole = false
+
+  Run = pShare             @ NewConsole = false
+  Run = pHostInfo          @ NewConsole = false
+  Run = uFldNodeBroker     @ NewConsole = false
+  Run = uFldMessageHandler @ NewConsole = false
+  
+  Run = uTimerScript       @ NewConsole = false
+  Run = pBasicContactMgr   @ NewConsole = false
+
+  Run = pFrontEstimate     @ NewConsole = false
+  Run = pAngleEstimate     @ NewConsole = false
+//  Run = pAngleDecision     @ NewConsole = false
+  Run = uXMS               @ NewConsole = true
+}
+
+Processconfig = pAngleDecision
+{
+  AppTick = 4
+  CommsTick = 4
+
+  vname1 = "ARCHIE"
+  vname2 = "BETTY"
+}
+
+Processconfig = pAngleEstimate
+{
+  AppTick = 4
+  CommsTick = 4
+}
+
+Processconfig = uXMS
+{
+  AppTick   = 4
+  CommsTick = 4
+  var = CIRCLE,COLLECT,THETA_REPORT,SIZE,WARNING,THETA,STOP
+//  var = SURVEY,A,UCTD_PARAMETER_ESTIMATE
+  history_var = THETA_REPORT
+}
+ProcessConfig = pFrontEstimate
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  vname = bravo
+  temperature_factor = 50
+  cooling_steps = 1000
+  min_offset = -120
+  max_offset = -60
+  min_angle = -5
+  max_angle = 15
+
+  min_amplitude = 0
+  max_amplitude = 50
+
+  min_period = 200
+  max_period = 600
+  min_wavelength = 100
+  max_wavelength = 500
+
+  //min_alpha = 200
+  //max_alpha = 500
+
+  min_alpha = 350
+  max_alpha = 350
+
+  min_beta = 10
+  max_beta = 50
+  min_T_N = 15
+  max_T_N = 25 
+  min_T_S = 20
+  max_T_S = 30 
+  concurrent = true
+  adaptive=false
+}
+
+//--------------------------------------------------------
+// uTimerScript Configuration Block
+
+ProcessConfig = uTimerScript
+{
+  AppTick   = 4
+  CommsTick = 4
+  
+  PAUSED     = false
+  RESET_MAX  = unlimited
+  RESET_TIME = end
+
+  DELAY_RESET = 0.5
+
+  //RANDVAR = varname=X, min=0,  max=100, key=at_reset
+  //RANDVAR = varname=Y, min=0,  max=100, key=at_reset
+  //EVENT = var=NODE_MESSAGE_LOCAL, val="src_node=bravo,dest_node=all,var_name=FOOBAR,string_val=$[X],$[Y]", time=0:30 
+
+  EVENT = var=UCTD_SENSOR_REQUEST, val=vname=bravo, time=5 
+}
+
+
+ 
+
+
+//--------------------------------------------------
+// uFldNodeBroker configuration block from plugin
+
+ProcessConfig = uFldNodeBroker
+{
+  AppTick   = 1
+  CommsTick = 1
+
+  TRY_SHORE_HOST = pshare_route=192.168.1.215:9300
+//  TRY_SHORE_HOST = pshare_route=multicast_9
+
+  BRIDGE = src=VIEW_POLYGON
+  BRIDGE = src=VIEW_POINT
+  BRIDGE = src=VIEW_SEGLIST
+  BRIDGE = src=APPCAST
+  BRIDGE = src=UCTD_SENSOR_REQUEST
+  BRIDGE = src=UCTD_PARAMETER_ESTIMATE
+  BRIDGE = src=NODE_REPORT_LOCAL,  alias=NODE_REPORT
+  BRIDGE = src=NODE_MESSAGE_LOCAL, alias=NODE_MESSAGE
+  BRIDGE = src=THETA_REPORT
+}
+
+//---------------------------------------------------------
+// pShare Config Block  (Created from Plugin)
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  localhost:9302
+
+  // =======================================================
+  // Usage Info below
+  // =======================================================
+
+  // Simple forward of X to A on channel 8
+  // output = src_name = X,dest_name=A, route=multicast_8
+ 
+  // Simple forward of Y to B on a udp address
+
+  // output = src_name=Y, dest_name=B, route=localhost:9300
+ 
+  // Simple forward of Z to Z on a named address (no renaming)
+  // output = src_name = Z, route = oceanai.mit.edu:9020
+ 
+  // Setting up an input
+  // input = route = multicast_9
+  
+  // input = route = localhost:9302 & multicast_9
+
+ 
+  // Setting up lots of inputs at once
+  // input = route = "localhost:9069 & multicast_19 & multicast_65"
+}
+
+
+//--------------------------------------------------
+// pHostInfo configuration block from plugin
+
+ProcessConfig = pHostInfo
+{
+  AppTick 	= 1
+  CommsTick 	= 1
+
+  DEFAULT_HOSTIP = localhost
+}
+
+
+//--------------------------------------------------
+// uFldMessageHandler configuration block from plugin
+
+ProcessConfig = uFldMessageHandler
+{
+  AppTick   = 3
+  CommsTick = 3
+
+  STRICT_ADDRESSING = false
+}
+
+
+ProcessConfig = iM200
+{
+  AppTick        = 10
+  CommsTick      = 10
+
+  IP_ADDRESS     = 192.168.10.1// Address of front-seat, default is 'localhost    '
+  PORT_NUMBER    = 29500     // Port number at IP address, default is 29500
+  GPS_PREFIX     = NAV_      // Prepended to GPS position messages.
+  DIRECT_THRUST  = false     // Default is false.
+                             // When true, vehicle is in direct-thrust mode.
+                             // When false, vehicle is in rudder-thrust mode    .
+  HEADING_OFFSET = 0.0       // Offset to add to published heading
+  PUBLISH_RAW    = false     // When true, publish all messages from
+                             // front seat to M200_RAW_NMEA
+  MAX_RUDDER     = 50.0      // Rudder value will be capped to this, +/-
+  MAX_THRUST     = 100.0     // Thrust value to each motor will be
+                             // capped to this value, +/-
+  PUBLISH_THRUST = false     // When true, publishes M200_THRUST_L and _R
+}
+
+
+
+//----------------------------------------------------
+// pHelmIvP Configuration Block  (Created from Plugin)
+
+ProcessConfig = pHelmIvP
+{
+  AppTick    = 2
+  CommsTick  = 2
+  
+  Behaviors    = targ_bravo.bhv  
+  Verbose      = false
+  Domain       = course:0:359:360
+  Domain       = speed:0:5:26
+
+  ok_skew      = any
+  ivp_behavior_dir = ../../../lib
+
+
+}
+
+//-----------------------------------------------------
+// pMarinePID Configuration Block (created from plugin)
+
+ProcessConfig = pMarinePID
+{
+  AppTick    = 10
+  CommsTick  = 10
+  
+  VERBOSE       = true
+  DEPTH_CONTROL = false
+  ACTIVE_START  = true
+  
+  // Yaw PID controller
+  YAW_PID_KP             = 0.4
+  YAW_PID_KD             = 0.1
+  YAW_PID_KI             = 0.0
+  YAW_PID_INTEGRAL_LIMIT = 0.07
+  
+  // Speed PID controller
+  SPEED_PID_KP           = 1.0
+  SPEED_PID_KD           = 0.0
+  SPEED_PID_KI           = 0.0
+  SPEED_PID_INTEGRAL_LIMIT = 0.07
+  
+
+  // Maximums
+  MAXRUDDER  = 100
+  MAXTHRUST  = 100
+  
+  // A non-zero SPEED_FACTOR overrides use of SPEED_PID
+  // Will set DESIRED_THRUST = DESIRED_SPEED * SPEED_FACTOR
+  SPEED_FACTOR = 20
+}
+
+//--------------------------------------------------
+// pLogger Configuration Block (Created from Plugin)
+
+ProcessConfig = pLogger
+{
+  AppTick 	= 5
+  CommsTick 	= 5
+  
+  File		= LOG_BRAVO
+  PATH		= ./
+  SyncLog 	= true @ 0.2
+  AsyncLog 	= true
+  FileTimeStamp = true
+
+  Log = IVPHELM_LIFE_EVENT @ 0 nosync
+
+  // Log it all!!!!!
+  WildCardLogging = true 
+  WildCardOmitPattern = *_STATUS
+  LogAuxSrc = true
+}
+
+//--------------------------------------------------------
+// pNodeReporter Configuration Block (Created from Plugin)
+
+ProcessConfig = pNodeReporter
+{
+  AppTick     = 2
+  CommsTick   = 2
+  
+  VESSEL_TYPE = KAYAK
+}
+
+//--------------------------------------------------------
+// uProcessWatch Configuration Block (Created from Plugin)
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 2
+  CommsTick = 2
+  
+  NOWATCH = uXMS*
+
+  WATCH_ALL = true
+
+  WATCH  = pShare*
+  WATCH  = pLogger
+  WATCH  = pNodeReporter
+  WATCH  = pMarinePID
+  WATCH  = pHelmIvP
+}
+
+
+
+
+//--------------------------------------------------------
+// pBasicContactMgr Configuration Block (Created from Plugin)
+
+ProcessConfig = pBasicContactMgr
+{
+  AppTick   = 2
+  CommsTick = 2
+
+  decay = 30,60
+
+  alert_verbose = true
+
+  contact_max_age = 3600
+  display_radii   = true
+
+  default_alert_range = 20
+  default_cpa_range   = 28
+  default_alert_range_color = gray70
+  default_cpa_range_color   = gray30
+
+  alert = id=avd, var=CONTACT_INFO, val="name=$[VNAME] # contact=$[VNAME]"
+  alert = id=avd, alert_range=40, cpa_range=45, alert_range_color=green
+ // alert = id=avd, cpa_range_color=invisible
+}
+
+
+

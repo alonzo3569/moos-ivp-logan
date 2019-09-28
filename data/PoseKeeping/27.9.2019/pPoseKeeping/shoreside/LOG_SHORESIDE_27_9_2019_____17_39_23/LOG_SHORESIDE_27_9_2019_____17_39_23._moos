@@ -1,0 +1,154 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% LOG FILE:       ./LOG_SHORESIDE_27_9_2019_____17_39_23/LOG_SHORESIDE_27_9_2019_____17_39_23._moos
+%% FILE OPENED ON  Wed Dec 31 19:00:00 1969
+%% LOGSTART               1569620362.55
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//-------------------------------------------------
+// NAME: Logan Zhang, MIT
+// FILE: meta_shoreside.moos
+//-------------------------------------------------
+
+ServerHost   = localhost
+ServerPort   = 9000
+Community    = shoreside
+MOOSTimeWarp = 1
+
+// MIT Sailing Pavilion (use this one)
+ LatOrigin  = 42.358456 
+ LongOrigin = -71.087589
+
+//------------------------------------------
+// Antler configuration  block
+ProcessConfig = ANTLER
+{
+  MSBetweenLaunches = 100
+
+  Run = MOOSDB            @ NewConsole = false
+  Run = pLogger           @ NewConsole = false
+  Run = pMarineViewer	  @ NewConsole = false
+  Run = uProcessWatch	  @ NewConsole = false
+  Run = pHostInfo         @ NewConsole = false
+  Run = pShare            @ NewConsole = false
+  Run = uFldShoreBroker   @ NewConsole = false
+}
+
+//------------------------------------------
+// pLogger config block
+
+ProcessConfig = pLogger
+{
+  AppTick   = 8
+  CommsTick = 8
+
+  AsyncLog = true
+
+  // For variables that are published in a bundle on their first post,
+  // explicitly declare their logging request
+  Log = IVPHELM_LIFE_EVENT @ 0 NOSYNC
+  Log = REPORT @ 0 NOSYNC
+
+  File		= LOG_SHORESIDE
+  PATH		= ./
+
+  LogAuxSrc = true
+  WildCardLogging = true
+  WildCardOmitPattern = *_STATUS
+  WildCardOmitPattern = DB_VARSUMMARY
+  WildCardOmitPattern = DB_RWSUMMARY
+  WildCardExclusionLog = true
+}
+//------------------------------------------
+// uProcessWatch
+
+ProcessConfig = uProcessWatch
+{
+  AppTick   = 4
+  CommsTick = 4
+
+  watch_all = true
+	nowatch   = uPokeDB*
+	nowatch   = uXMS*
+}
+
+
+//------------------------------------------
+// pMarineViewer config block
+
+ProcessConfig = pMarineViewer
+{
+  AppTick    = 4
+  CommsTick  = 4
+
+  tiff_file            = MIT_SP.tif
+
+  set_pan_x            = -90
+  set_pan_y            = -280
+  zoom                 = 0.65
+  vehicle_shape_scale  = 1.5
+  hash_delta           = 50
+  hash_shade           = 0.22
+  hash_viewable        = true
+
+  trails_point_size   = 1
+
+  // Appcast configuration
+  appcast_height       = 75
+  appcast_width        = 30
+  appcast_viewable     = true
+  appcast_color_scheme = indigo
+  nodes_font_size      = medium
+  procs_font_size      = medium
+  appcast_font_size    = small
+  
+  scope  = RETURN
+
+  button_one = DEPLOY # DEPLOY_ALL=true
+  button_one = MOOS_MANUAL_OVERRIDE_ALL=false #THRUST_MODE_DIFFERENTIAL_ALL=false
+  button_two = RETURN # RETURN_ALL=true #MOOS_MANUAL_OVERRIDE_ALL=false #THRUST_MODE_DIFFERENTIAL_ALL=false
+  button_three  = POSEKEEPING #THRUST_MODE_DIFFERENTIAL_ALL=true #MOOS_MANUAL_OVERRIDE_ALL=true 
+
+  action  = MENU_KEY=deploy # DEPLOY = true # RETURN = false
+  action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE=false
+  action  = RETURN=true
+  action  = UPDATES_RETURN=speed=1.4
+}
+
+//---------------------------------------------------------
+// pShare Configuration Block
+
+ProcessConfig = pShare
+{
+  AppTick    = 2
+  CommsTick  = 2
+
+  input = route =  localhost:9300
+//  input = route =  multicast_7
+}
+
+//--------------------------------------------------
+ProcessConfig = pHostInfo
+{
+  AppTick     = 2
+  CommsTick   = 2
+
+//  DEFAULT_HOSTIP = localhost
+}
+
+//--------------------------------------------------
+// uFldShoreBroker Configuration Block
+ProcessConfig = uFldShoreBroker
+{
+  AppTick       = 1
+  CommsTick     = 1
+
+  // Note: [QBRIDGE = FOO]  is shorthand for
+  //       [BRIDGE = src=FOO_$V,  alias=FOO] and
+  //       [BRIDGE = src=FOO_ALL, alias=FOO]
+
+  qbridge  = DEPLOY, RETURN, STATION, NODE_REPORT, NODE_MESSAGE
+  qbridge  = MOOS_MANUAL_OVERRIDE, APPCAST_REQ
+  qbridge  = THRUST_MODE_DIFFERENTIAL
+
+}
+
+
