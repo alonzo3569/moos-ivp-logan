@@ -1,8 +1,8 @@
 /************************************************************/
-/*    NAME: Logan                                              */
+/*    NAME: Logan Zhang                                     */
 /*    ORGN: MIT                                             */
-/*    FILE: PoseKeeping.h                                          */
-/*    DATE: December 29th, 1963                             */
+/*    FILE: PoseKeeping.h                                   */
+/*    DATE: September 15th, 2019                            */
 /************************************************************/
 
 #ifndef PoseKeeping_HEADER
@@ -85,6 +85,14 @@ class PoseKeeping : public AppCastingMOOSApp
    double m_steady_error;
    std::string m_switch_mode;
    bool m_keep_heading;
+   double m_arrival_radius;
+   int m_upper_speed;
+   int m_lower_speed;   
+   bool m_active;
+   //version4
+   double m_previous_error_x;
+   std::string m_switch;
+   bool m_switch_temp;
 };
 
 #endif 
