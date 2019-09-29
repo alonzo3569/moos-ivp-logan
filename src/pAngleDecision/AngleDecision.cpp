@@ -274,7 +274,7 @@ void AngleDecision::PostRegion()
 // Procedure: StringToDouble()
 //   Purpose: StringToDouble
 
-double BHV_Lawnmower::StringToDouble(string msg)
+double AngleDecision::StringToDouble(string msg)
 {
 	stringstream s;
 	double num;
