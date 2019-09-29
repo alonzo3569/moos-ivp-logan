@@ -73,18 +73,3 @@ Behavior=BHV_ConstantSpeed
      duration = 10
      duration_reset = CONST_SPD_RESET=true
 	
-}
-
-//----------------------------------------------
-Behavior=BHV_Deploy_Station_Keep
-{
-  name       = test
-  pwt        = 100
-  condition  = READY = true
-  endflag    = READY = false
-
-  pose_keep_position_x = 0
-  pose_keep_position_y = -50
-  arrival_radius = 5
-}
-
