@@ -70,6 +70,7 @@ public:
   void setting_path();
   void calculate_distance();
   bool check_opregion(double x, double y);
+  double StringToDouble(string msg);
 
 protected: // Local Utility functions
 

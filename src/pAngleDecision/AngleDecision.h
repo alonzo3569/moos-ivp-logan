@@ -63,6 +63,7 @@ class AngleDecision : public AppCastingMOOSApp
   void FormReport2(double x, double y, double theta, string name, double distance);
   void Average();
   void PostRegion();
+  double StringToDouble(string msg);
   //void MarkpMarine(double x, double y, string msg);
 
   //template <class T> 

@@ -220,6 +220,7 @@ bool PoseKeeping::Iterate()
 	m_previous_error_x = abs(m_desired_x - m_osx);
 	m_previous_time = current_time; 
 /* 
+
   // Wait until active
   if(!m_active)
     return(false);

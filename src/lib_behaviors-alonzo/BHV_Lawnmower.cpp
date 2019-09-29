@@ -268,10 +268,10 @@ IvPFunction *BHV_Lawnmower::buildFunctionWithZAIC()
 void BHV_Lawnmower::setting_params(string msg)
 {
       m_name        =      tokStringParse(msg , "name" , ',' , '=' );
-      m_theta       = stod(tokStringParse(msg , "theta" , ',' , '=' ));
-      m_start_x     = stod(tokStringParse(msg , "x" , ',' , '=' ));
-      m_start_y     = stod(tokStringParse(msg , "y" , ',' , '=' ));
-      m_distance    = stod(tokStringParse(msg , "dis" , ',' , '=' ));
+      m_theta       = StringToDouble(tokStringParse(msg , "theta" , ',' , '=' ));
+      m_start_x     = StringToDouble(tokStringParse(msg , "x" , ',' , '=' ));
+      m_start_y     = StringToDouble(tokStringParse(msg , "y" , ',' , '=' ));
+      m_distance    = StringToDouble(tokStringParse(msg , "dis" , ',' , '=' ));
 }
 //---------------------------------------------------------------
 // Procedure: setting_path()
@@ -346,7 +346,15 @@ void BHV_Lawnmower::calculate_distance()
 	}
 }
 //---------------------------------------------------------------
+// Procedure: StringToDouble()
+//   Purpose: StringToDouble
 
-
-
-
+double BHV_Lawnmower::StringToDouble(string msg)
+{
+	stringstream s;
+	double num;
+	s << msg;
+	s >> num;
+	return(num);
+}
+//---------------------------------------------------------------

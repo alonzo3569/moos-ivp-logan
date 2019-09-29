@@ -89,10 +89,13 @@ class PoseKeeping : public AppCastingMOOSApp
    int m_upper_speed;
    int m_lower_speed;   
    bool m_active;
+<<<<<<< HEAD
    //version4
    double m_previous_error_x;
    std::string m_switch;
    bool m_switch_temp;
+=======
+>>>>>>> master
 };
 
 #endif 
