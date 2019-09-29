@@ -193,11 +193,11 @@ bool AngleDecision::buildReport()
 void AngleDecision::GetData(string a)
 {
 	struct Data block;
-	block.theta = stod(tokStringParse(a , "theta" , ',' , '=' ));
-	block.x1    = stod(tokStringParse(a , "x1" , ',' , '=' ));
-	block.y1    = stod(tokStringParse(a , "y1" , ',' , '=' ));
-	block.x2    = stod(tokStringParse(a , "x2" , ',' , '=' ));
-	block.y2    = stod(tokStringParse(a , "y2" , ',' , '=' ));
+	block.theta = StringToDouble(tokStringParse(a , "theta" , ',' , '=' ));
+	block.x1    = StringToDouble(tokStringParse(a , "x1" , ',' , '=' ));
+	block.y1    = StringToDouble(tokStringParse(a , "y1" , ',' , '=' ));
+	block.x2    = StringToDouble(tokStringParse(a , "x2" , ',' , '=' ));
+	block.y2    = StringToDouble(tokStringParse(a , "y2" , ',' , '=' ));
 	block.dis   = 0.5*sqrt(pow(block.x1-block.x2,2)+pow(block.y1-block.y2,2));
 	angle_point.push_back(block); 
 	Notify("CHECK", block.dis);
@@ -269,5 +269,17 @@ void AngleDecision::PostRegion()
 {
 	string msg = "label=logan, pts={160,0:100,0:-40,-50:-85,-80:-45,-185:165,-185},edge_color=red,vertex_color=brown,vertex_size=2,edge_size=1";
 	Notify("VIEW_POLYGON", msg);
+}
+//---------------------------------------------------------------
+// Procedure: StringToDouble()
+//   Purpose: StringToDouble
+
+double BHV_Lawnmower::StringToDouble(string msg)
+{
+	stringstream s;
+	double num;
+	s << msg;
+	s >> num;
+	return(num);
 }
 
