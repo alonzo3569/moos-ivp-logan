@@ -259,7 +259,7 @@ IvPFunction *BHV_rotate_lawnmower::buildFunctionWithZAIC()
 
 void BHV_rotate_lawnmower::setting_params(string msg)
 {
-      m_theta       = stod(tokStringParse(msg , "theta" , ',' , '=' ));
+      m_theta       = StringToDouble(tokStringParse(msg , "theta" , ',' , '=' ));
 }
 //---------------------------------------------------------------
 // Procedure: setting_path()
@@ -331,5 +331,17 @@ void BHV_rotate_lawnmower::calculate_distance()
 	{
 		view_point.pop_back();
 	}
+}
+///---------------------------------------------------------------
+// Procedure: StringToDouble()
+//   Purpose: StringToDouble
+
+double BHV_rotate_lawnmower::StringToDouble(string msg)
+{
+	stringstream s;
+	double num;
+	s << msg;
+	s >> num;
+	return(num);
 }
 //---------------------------------------------------------------
