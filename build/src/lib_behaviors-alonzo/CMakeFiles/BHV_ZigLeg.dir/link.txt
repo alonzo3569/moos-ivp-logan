@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -fPIC -g  -shared -Wl,-soname,libBHV_ZigLeg.so -o ../../../lib/libBHV_ZigLeg.so CMakeFiles/BHV_ZigLeg.dir/BHV_ZigLeg.cpp.o  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib -lhelmivp -lbehaviors -livpbuild -llogic -livpcore -lbhvutil -lmbutil -lgeometry -lm 

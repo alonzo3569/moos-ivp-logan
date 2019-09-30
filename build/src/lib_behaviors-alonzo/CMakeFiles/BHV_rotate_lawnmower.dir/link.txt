@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -fPIC -g  -shared -Wl,-soname,libBHV_rotate_lawnmower.so -o ../../../lib/libBHV_rotate_lawnmower.so CMakeFiles/BHV_rotate_lawnmower.dir/BHV_rotate_lawnmower.cpp.o  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib -lhelmivp -lbehaviors -livpbuild -llogic -livpcore -lbhvutil -lmbutil -lgeometry -lm 
