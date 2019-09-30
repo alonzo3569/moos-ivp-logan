@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC  -fPIC -g  -shared -Wl,-soname,libBHV_sine.so -o ../../../lib/libBHV_sine.so CMakeFiles/BHV_sine.dir/BHV_sine.cpp.o  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib -lhelmivp -lbehaviors -livpbuild -llogic -livpcore -lbhvutil -lmbutil -lgeometry -lm 

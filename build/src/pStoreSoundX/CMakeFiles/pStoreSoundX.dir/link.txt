@@ -1,1 +1,0 @@
-/usr/bin/c++   -fPIC -g  -rdynamic CMakeFiles/pStoreSoundX.dir/StoreSoundX.cpp.o CMakeFiles/pStoreSoundX.dir/StoreSoundX_Info.cpp.o CMakeFiles/pStoreSoundX.dir/main.cpp.o  -o ../../../bin/pStoreSoundX  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib /home/ual/moos-ivp/build/MOOS/MOOSCore/lib/libMOOS.a -lapputil -lmbutil -lm -lpthread -lasound -pthread 

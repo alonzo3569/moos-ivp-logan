@@ -1,1 +1,0 @@
-/usr/bin/c++   -fPIC -g  -rdynamic CMakeFiles/uFldHazardMgrX.dir/HazardMgr.cpp.o CMakeFiles/uFldHazardMgrX.dir/HazardMgr_Info.cpp.o CMakeFiles/uFldHazardMgrX.dir/main.cpp.o  -o ../../../bin/uFldHazardMgrX  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib /home/ual/moos-ivp/build/MOOS/MOOSCore/lib/libMOOS.a -lufld_hazards -lgeometry -lapputil -lmbutil -pthread -lm 
