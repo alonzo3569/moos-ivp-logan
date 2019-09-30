@@ -1,1 +1,0 @@
-/usr/bin/c++   -fPIC -g  -rdynamic CMakeFiles/pOdometry.dir/Odometry.cpp.o CMakeFiles/pOdometry.dir/Odometry_Info.cpp.o CMakeFiles/pOdometry.dir/main.cpp.o  -o ../../../bin/pOdometry  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib /home/ual/moos-ivp/build/MOOS/MOOSCore/lib/libMOOS.a -lmbutil -lm -lpthread -pthread 

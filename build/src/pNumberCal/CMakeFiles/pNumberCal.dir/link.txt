@@ -1,1 +1,0 @@
-/usr/bin/c++   -fPIC -g  -rdynamic CMakeFiles/pNumberCal.dir/NumberCal.cpp.o CMakeFiles/pNumberCal.dir/NumberCal_Info.cpp.o CMakeFiles/pNumberCal.dir/main.cpp.o  -o ../../../bin/pNumberCal  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib /home/ual/moos-ivp/build/MOOS/MOOSCore/lib/libMOOS.a -lapputil -lmbutil -lm -lpthread -pthread 

@@ -1,1 +1,0 @@
-/usr/bin/c++   -fPIC -g  -rdynamic CMakeFiles/pRecordtest.dir/Recordtest.cpp.o CMakeFiles/pRecordtest.dir/Recordtest_Info.cpp.o CMakeFiles/pRecordtest.dir/main.cpp.o  -o ../../../bin/pRecordtest  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib /home/ual/moos-ivp/build/MOOS/MOOSCore/lib/libMOOS.a -lmbutil -lm -lpthread -lasound -pthread 
