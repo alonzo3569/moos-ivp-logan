@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC  -fPIC -g  -shared -Wl,-soname,libBHV_test.so -o ../../../lib/libBHV_test.so CMakeFiles/BHV_test.dir/BHV_test.cpp.o  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib -lhelmivp -lbehaviors -livpbuild -llogic -livpcore -lbhvutil -lmbutil -lgeometry -lm 

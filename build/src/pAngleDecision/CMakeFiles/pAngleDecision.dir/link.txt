@@ -1,0 +1,1 @@
+/usr/bin/c++   -fPIC -g  -rdynamic CMakeFiles/pAngleDecision.dir/AngleDecision.cpp.o CMakeFiles/pAngleDecision.dir/AngleDecision_Info.cpp.o CMakeFiles/pAngleDecision.dir/main.cpp.o  -o ../../../bin/pAngleDecision  -L/home/ual/moos-ivp/lib -Wl,-rpath,/home/ual/moos-ivp/lib /home/ual/moos-ivp/build/MOOS/MOOSCore/lib/libMOOS.a -lapputil -lmbutil -lm -lgeometry -lpthread -pthread 
