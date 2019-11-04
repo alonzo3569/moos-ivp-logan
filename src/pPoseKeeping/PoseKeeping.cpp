@@ -8,7 +8,10 @@
 #include <iterator>
 #include "MBUtils.h"
 #include "ACTable.h"
+#include "AngleUtils.h"
 #include "PoseKeeping.h"
+#include "ColorPack.cpp"
+#include <memory>
 
 #ifndef M_PI
 #define M_PI 3.1415926
@@ -24,22 +27,25 @@ PoseKeeping::PoseKeeping()
 	m_nav_heading = 0;
 	m_osx = 0;
 	m_osy = 0;
+	m_active = false;
+	//Mode::setpretime(MOOSTime());
 	m_desired_x = 0;
 	m_desired_y = 0;
 	m_desired_heading = 0;
-	m_kp = 0;
-	m_ki = 0;
-	m_kd = 0;
 	m_tolerance_radius = 0;
-	m_previous_time = MOOSTime();
-	m_previous_error = 0;
-	m_steady_error = 0;
-	m_switch_mode = '\0';
-	m_keep_heading = false;
 	m_arrival_radius = 1;
+	m_keep_heading = false;
+/*
+	//m_kp = 0;
+	//m_ki = 0;
+	//m_kd = 0;
+	//m_previous_time = MOOSTime();
+	//m_previous_error = 0;
+	//m_steady_error = 0;
+	//m_switch_mode = '\0';
 	m_upper_speed = 100;
 	m_lower_speed = 10;
-	m_active = false;
+*/
 }
 
 //---------------------------------------------------------
@@ -76,6 +82,7 @@ bool PoseKeeping::OnNewMail(MOOSMSG_LIST &NewMail)
      if(key == "FOO") 
        cout << "great!";
 
+
      else if(key == "NAV_HEADING")
      {
 	m_nav_heading = dval; 
@@ -94,7 +101,7 @@ bool PoseKeeping::OnNewMail(MOOSMSG_LIST &NewMail)
 	if(sval == "true")
 	{
 		m_active = true; 
-		m_previous_time = MOOSTime();
+		Mode::setpretime(MOOSTime());
 		postPolygons();
 	}
 	else
@@ -127,25 +134,77 @@ bool PoseKeeping::OnConnectToServer()
 bool PoseKeeping::Iterate()
 {
   AppCastingMOOSApp::Iterate();
-  
+
   // Wait until active
-  if(!m_active)
-    return(false);
+  if(!m_active){
+    return(false);}
 
-  // Behavior
+
+// Behavior
+  //shared_ptr<Mode> p;
+  double distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
   // If vehicle reach destination, KeepHeading mode On
-  if(Distance(m_osx, m_osy, m_desired_x, m_desired_y) < m_arrival_radius)
-    m_keep_heading = true;
+  if(distance < m_arrival_radius){
+    m_keep_heading = true;}
   // If vehicle outside KeepHeading region, KeepHeading mode Off (will become SetPoint mode)
-  if(Distance(m_osx, m_osy, m_desired_x, m_desired_y) > m_tolerance_radius)
-    m_keep_heading = false;
-	
-  if(m_keep_heading)
+  if(distance > m_tolerance_radius){
+    m_keep_heading = false;}
+
+  Notify("KEEP_HEADING",m_keep_heading);
+
+  if(m_keep_heading){
     KeepHeading();
-  else
+ }
+/*    cout << "con" << endl;
+    p -> CalculateError();
+    cout << "cal" << endl;
+    //cout << *p << endl;
+    p -> CheckMode();
+    cout << "check" << endl;
+    //cout << *p << endl;
+    p -> SetParams();
+    cout << "sParams" << endl;
+    p -> ThrustSpeed();
+    cout << "TS" << endl;
+    p -> Output();
+    cout << "output" << endl;
+    p -> SaveParams();
+    cout << "Save" << endl;
+    //cout << *p;
+    Notify("DESIRED_THRUST_L", p->getthrustl());
+    Notify("DESIRED_THRUST_R", p->getthrustr());
+*/
+  else{
     SetPoint();
+}
 
+/*
+    p -> CalculateError();
+    //cout << *p << endl;
+    p -> CheckMode();
+    //cout << *p << endl;
+    p -> SetParams();
+    p -> ThrustSpeed();
+    p -> Output();
+    p -> SaveParams();
+    //cout << *p;
+    Notify("DESIRED_THRUST_L", p->getthrustl());
+    Notify("DESIRED_THRUST_R", p->getthrustr()); 
 
+    Notify("M_CURR_HEADING",p->getheading());
+    Notify("M_CURR_ERROR",p->geterror());
+    Notify("M_CURR_DISTANCE",p->getdistance());
+    Notify("M_MODE",p->getmode());
+    Notify("M_THRUST",p->getthrust());
+    Notify("M_THRUST_R",p->getthrustr());
+    Notify("M_THRUST_L",p->getthrustl());
+    Notify("M_SPEED",p->getspeed());
+    Notify("M_KP",p->Mode::getkp());
+    Notify("M_KI",p->Mode::getki());
+    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
+    Notify("M_STEADY_ERROR",p->getsteadyerror());
+    Notify("M_DELTA_TIME",p->getdeltatime());
+*/
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -177,7 +236,7 @@ bool PoseKeeping::OnStartUp()
     else if(param == "bar") {
       handled = true;
     }
-
+///*
     else if(param == "position") {
       value = stripQuotes(value);
       string x = biteString(value, ',');
@@ -193,17 +252,17 @@ bool PoseKeeping::OnStartUp()
     }
 
     else if(param == "kp") {
-      m_kp = atof(value.c_str());
+      Mode::setkp(atof(value.c_str()));
       handled = true;
     }
 
     else if(param == "ki") {
-      m_ki = atof(value.c_str());
+      Mode::setki(atof(value.c_str()));
       handled = true;
     }
 
     else if(param == "kd") {
-      m_kd = atof(value.c_str());
+      Mode::setkd(atof(value.c_str()));;
       handled = true;
     }
 
@@ -211,7 +270,7 @@ bool PoseKeeping::OnStartUp()
       m_tolerance_radius = atof(value.c_str());
       handled = true;
     }
-
+//*/
     if(!handled)
       reportUnhandledConfigWarning(orig);
 
@@ -252,7 +311,7 @@ bool PoseKeeping::buildReport()
 
   return(true);
 }
-
+/*
 //------------------------------------------------------------
 // Procedure: KeepHeeding
 // Procedure: Keep Vehicle's heading while vehicle is inside the KeepHeading region
@@ -556,8 +615,160 @@ string PoseKeeping::DoubleToString(double input)
     return(output);
 }
 
+*/
 
+//------------------------------------------------------------
+// Procedure: postPolygons
+//   Purpose: Post KeepHeading region on pMarineViewer
 
+void PoseKeeping::postPolygons()
+{
+    string spec = "format=radial,label=destination_point,edge_color=blue,vertex_color=blue,fill_color=grey90,vertex_size=0,edge_size=1";
+    spec += ",x=" + DoubleToString(m_desired_x);
+    spec += ",y=" + DoubleToString(m_desired_y);
+    spec += ",radius=" + DoubleToString(m_tolerance_radius);
+    spec += ",pts=24, snap=1";
+    if(m_active)
+    {
+	spec += ",active=true";
+    }
+    else
+    {
+	spec += ",active=false";
+    }
+    Notify("VIEW_POLYGON", spec);
+}
+//------------------------------------------------------------
+// Procedure: DoubleToString
+//   Purpose: Change double to string
+string PoseKeeping::DoubleToString(double input)
+{
+    stringstream msg;
+    string output;
+    msg << input;
+    msg >> output;
+    return(output);
+}
+//---------------------------------------------------------------
+// Procedure: Distance
+//   Purpose: Calculate distance between vehicle and destination
 
+double PoseKeeping::Distance(double current_x, double current_y, double destination_x, double destination_y)
+{
+  double distance = sqrt(pow(current_x-destination_x,2)+pow(current_y-destination_y,2));
+  return(distance);
+}
+//------------------------------------------------------------
+// Procedure: KeepHeeding
+// Procedure: Keep Vehicle's heading while vehicle is inside the KeepHeading region
 
+void PoseKeeping::KeepHeading() 
+{
+  //cout << "keepheading" << endl;
+  double error = m_desired_heading - m_nav_heading;
+  shared_ptr<Mode> p(new Keepheading(m_nav_heading, error));
+    Notify("M_CURR_HEADING",p->getheading());
+    Notify("M_CURR_ERROR",p->geterror());
+    Notify("M_CURR_DISTANCE",p->getdistance());
+  //return ptr;
+    p -> CalculateError();
+    //cout << *p << endl;
+    p -> CheckMode();
+    //cout << *p << endl;
+    p -> SetParams();
+    p -> ThrustSpeed();
+    p -> Output();
+    p -> SaveParams();
+    //cout << *p;
+    Notify("DESIRED_THRUST_L", p->getthrustl());
+    Notify("DESIRED_THRUST_R", p->getthrustr()); 
+
+    Notify("M_MODE",p->getmode());
+    Notify("M_THRUST",p->getthrust());
+    Notify("M_THRUST_R",p->getthrustr());
+    Notify("M_THRUST_L",p->getthrustl());
+    Notify("M_SPEED",p->getspeed());
+    Notify("M_KP",p->Mode::getkp());
+    Notify("M_KI",p->Mode::getki());
+    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
+    Notify("M_STEADY_ERROR",p->getsteadyerror());
+    Notify("M_DELTA_TIME",p->getdeltatime());
+    Notify("M_PREVIOUS_TIME",p->getpretime());
+    Notify("M_SWITCH_MODE",p->getstaticmode());
+}
+
+//------------------------------------------------------------
+// Procedure: SetPoint
+//   Purpose: Go to destination
+void PoseKeeping::SetPoint() 
+{
+  //cout << "front" << endl;
+  double wpt_error = relAng(m_osx, m_osy, m_desired_x, m_desired_y) - m_nav_heading;
+  double distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
+  if((wpt_error < 180 && wpt_error > 90 && distance < m_tolerance_radius+10) ||
+    (wpt_error < -90 && wpt_error > -180 && distance < m_tolerance_radius+10))
+  {
+	shared_ptr<Front> p(new Front(m_nav_heading, wpt_error, distance));
+    Notify("M_CURR_HEADING",p->getheading());
+    Notify("M_CURR_ERROR",p->geterror());
+    Notify("M_CURR_DISTANCE",p->getdistance());
+	//return ptr;
+    p -> CalculateError();
+    //cout << *p << endl;
+    p -> CheckMode();
+    //cout << *p << endl;
+    p -> SetParams();
+    p -> ThrustSpeed();
+    p -> Output();
+    p -> SaveParams();
+    //cout << *p;
+    Notify("DESIRED_THRUST_L", p->getthrustl());
+    Notify("DESIRED_THRUST_R", p->getthrustr()); 
+
+    Notify("M_MODE",p->getmode());
+    Notify("M_THRUST",p->getthrust());
+    Notify("M_THRUST_R",p->getthrustr());
+    Notify("M_THRUST_L",p->getthrustl());
+    Notify("M_SPEED",p->getspeed());
+    Notify("M_KP",p->Mode::getkp());
+    Notify("M_KI",p->Mode::getki());
+    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
+    Notify("M_STEADY_ERROR",p->getsteadyerror());
+    Notify("M_DELTA_TIME",p->getdeltatime());
+    Notify("M_PREVIOUS_TIME",p->getpretime());
+    Notify("M_SWITCH_MODE",p->getstaticmode());
+  }
+  else
+  {
+	shared_ptr<Front> p(new Front(m_nav_heading, wpt_error, distance));
+	//return ptr;
+    Notify("M_CURR_HEADING",p->getheading());
+    Notify("M_CURR_ERROR",p->geterror());
+    Notify("M_CURR_DISTANCE",p->getdistance());
+    p -> CalculateError();
+    //cout << *p << endl;
+    p -> CheckMode();
+    //cout << *p << endl;
+    p -> SetParams();
+    p -> ThrustSpeed();
+    p -> Output();
+    p -> SaveParams();
+    //cout << *p;
+    Notify("DESIRED_THRUST_L", p->getthrustl());
+    Notify("DESIRED_THRUST_R", p->getthrustr()); 
+
+    Notify("M_MODE",p->getmode());
+    Notify("M_THRUST",p->getthrust());
+    Notify("M_THRUST_R",p->getthrustr());
+    Notify("M_THRUST_L",p->getthrustl());
+    Notify("M_SPEED",p->getspeed());
+    Notify("M_KP",p->Mode::getkp());
+    Notify("M_KI",p->Mode::getki());
+    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
+    Notify("M_STEADY_ERROR",p->getsteadyerror());
+    Notify("M_DELTA_TIME",p->getdeltatime());
+    Notify("M_PREVIOUS_TIME",p->getpretime());
+    Notify("M_SWITCH_MODE",p->getstaticmode());
+  }
+}
 

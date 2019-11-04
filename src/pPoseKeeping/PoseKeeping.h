@@ -9,13 +9,14 @@
 #define PoseKeeping_HEADER
 
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
+#include "Mode.h"
 
 class PoseKeeping : public AppCastingMOOSApp
 {
  public:
    PoseKeeping();
    ~PoseKeeping();
-
+/*
    class Data
    {
     public:
@@ -39,6 +40,7 @@ class PoseKeeping : public AppCastingMOOSApp
 	m_mode = '\0';
       }
    };
+*/
 
  protected: // Standard MOOSApp functions to overload  
    bool OnNewMail(MOOSMSG_LIST &NewMail);
@@ -51,20 +53,22 @@ class PoseKeeping : public AppCastingMOOSApp
 
  protected:
    void registerVariables();
-
  protected: //My Function
+   void postPolygons();
+   std::string DoubleToString(double input);
+   double Distance(double current_x, double current_y, double destination_x, double destination_y);
+   void KeepHeading();
+   void SetPoint();
+/*
    void KeepHeading();
    void CalculateError(Data &block, double desired_angle);
    void OutputThruster(Data block, double thrust, double speed);
    void SetPoint();
+   double Speed(Data &block);
+   void CheckMode(Data &block);
    double relAng(double xa, double ya, double xb, double yb);
    double angle360(double degval);
    double radToDegrees(double radval);
-   double Distance(double current_x, double current_y, double destination_x, double destination_y);
-   double Speed(Data &block);
-   void CheckMode(Data &block);
-   void postPolygons();
-   std::string DoubleToString(double input);
 
 
  private: // Configuration variables
@@ -80,15 +84,26 @@ class PoseKeeping : public AppCastingMOOSApp
    double m_osy;
    double m_desired_x;
    double m_desired_y;
-   double m_previous_time;
-   double m_previous_error;
-   double m_steady_error;
+   //double m_previous_time;
+   //double m_previous_error;
+   //double m_steady_error;
    std::string m_switch_mode;
-   bool m_keep_heading;
    double m_arrival_radius;
    int m_upper_speed;
    int m_lower_speed;   
    bool m_active;
+*/
+ private:
+   double m_nav_heading;
+   double m_osx;
+   double m_osy;
+   bool   m_active;
+   double m_desired_x;
+   double m_desired_y;
+   double m_desired_heading;
+   double m_tolerance_radius;
+   double m_arrival_radius;
+   bool m_keep_heading;
 };
 
 #endif 

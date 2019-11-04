@@ -28,7 +28,7 @@ ProcessConfig = ANTLER
   Run = pNodeReporter	  @ NewConsole = false
   Run = uTimerScript	  @ NewConsole = false
   Run = uXMS		  @ NewConsole = true
-  Run = pPoseKeeping	  @ NewConsole = false
+  Run = pPoseKeeping	  @ NewConsole = true
 }
 
 //------------------------------------------
@@ -81,7 +81,7 @@ ProcessConfig = uSimMarine
 
   prefix        = NAV
 
-  drift_x       = 0.3
+  //drift_x       = 0.3
   //drift_y       = 0.03
 
   turn_rate     = 40
@@ -182,7 +182,7 @@ ProcessConfig = pNodeReporter
 // uTimerScript config block
 ProcessConfig = uTimerScript  
 {  
-  event = var= THRUST_MODE_DIFFERENTIAL, val=true, time=0
+  //event = var= THRUST_MODE_DIFFERENTIAL, val=true, time=0
 }
 
 //------------------------------------------
@@ -191,7 +191,7 @@ ProcessConfig = uXMS
 {
   AppTick   = 4                                                 
   CommsTick = 4
-  var = DESIRED_THRUST_R, DESIRED_THRUST_L, THRUST_MODE_DIFFERENTIAL,NAV_HEADING, ERROR
+  var = DESIRED_THRUST_R, DESIRED_THRUST_L, THRUST_MODE_DIFFERENTIAL,NAV_HEADING,M_CURR_HEADING,M_CURR_ERROR,M_CURR_DISTANCE,M_MODE,M_THRUST,M_THRUST_R,M_THRUST_L,M_SPEED,M_KP,M_KI,M_PREVIOUS_ERROR,M_STEADY_ERROR,M_DELTA_TIME,M_PREVIOUS_TIME,M_SWITCH_MODE
   history_var = DESIRED_THRUST_R
 }
 

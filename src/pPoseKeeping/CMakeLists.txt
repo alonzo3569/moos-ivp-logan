@@ -7,6 +7,7 @@ SET(SRC
   PoseKeeping.cpp
   PoseKeeping_Info.cpp
   main.cpp
+  Mode.cpp
 )
 
 ADD_EXECUTABLE(pPoseKeeping ${SRC})
