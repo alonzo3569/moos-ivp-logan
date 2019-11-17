@@ -26,6 +26,7 @@ ADD_SUBDIRECTORY(pStoreSoundX)
 ADD_SUBDIRECTORY(uFldHazardMgrX)
 ADD_SUBDIRECTORY(pAngleDecision)
 ADD_SUBDIRECTORY(pPoseKeeping)
+ADD_SUBDIRECTORY(pPoseKeepingX)
 #ADD_SUBDIRECTORY(pFFT_test)
 
 ##############################################################################

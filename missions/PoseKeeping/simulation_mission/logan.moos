@@ -28,7 +28,8 @@ ProcessConfig = ANTLER
   Run = pNodeReporter	  @ NewConsole = false
   Run = uTimerScript	  @ NewConsole = false
   Run = uXMS		  @ NewConsole = true
-  Run = pPoseKeeping	  @ NewConsole = true
+  //Run = pPoseKeeping	  @ NewConsole = false
+  Run = pPoseKeepingX	  @ NewConsole = true
 }
 
 //------------------------------------------
@@ -222,4 +223,18 @@ ProcessConfig = pHelmIvP
   behaviors  = alpha.bhv
   domain     = course:0:359:360
   domain     = speed:0:4:41
+}
+//------------------------------------------
+// pPoseKeeping config block
+ProcessConfig = pPoseKeepingX
+{
+  AppTick   = 4                                                 
+  CommsTick = 4
+
+  position  = $(POS)
+  heading   = $(HEADING)
+  Kp        = 1.2
+  Kd        = 0.0
+  Ki        = 0.0
+  tolerance_radius = 5
 }
