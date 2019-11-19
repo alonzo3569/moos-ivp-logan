@@ -152,7 +152,9 @@ bool PoseKeepingX::Iterate()
 
   // Wait until active
   if(!m_active){
-    return(false);}
+    PublishFreshMOOSVariables();
+    AppCastingMOOSApp::PostReport();
+    return(true);}
 
   // Config
   double distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
@@ -168,14 +170,13 @@ bool PoseKeepingX::Iterate()
 
   // Decide Mode
   unique_ptr<Mode> p;
-///*  
   if(m_keep_heading)
    p.reset(new Keepheading(keepheading_error));
   else if((setpoint_error < 180 && setpoint_error > 90 || setpoint_error < -90 && setpoint_error > -180) && distance < m_tolerance_radius+10)
    p.reset(new Forward(setpoint_error));
   else
    p.reset(new Forward(setpoint_error));
-//*/
+
   // Go go!
   p->CalculateError();
   CheckMode(p.get());

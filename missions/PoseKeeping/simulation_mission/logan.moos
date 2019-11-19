@@ -29,7 +29,7 @@ ProcessConfig = ANTLER
   Run = uTimerScript	  @ NewConsole = false
   Run = uXMS		  @ NewConsole = true
   //Run = pPoseKeeping	  @ NewConsole = false
-  Run = pPoseKeepingX	  @ NewConsole = true
+  Run = pPoseKeepingX	  @ NewConsole = false
 }
 
 //------------------------------------------
