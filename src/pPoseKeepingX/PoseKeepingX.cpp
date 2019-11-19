@@ -168,6 +168,7 @@ bool PoseKeepingX::Iterate()
   if(distance > m_tolerance_radius){
     m_keep_heading = false;}
 
+/* smart pointer
   // Decide Mode
   unique_ptr<Mode> p;
   if(m_keep_heading)
@@ -176,10 +177,23 @@ bool PoseKeepingX::Iterate()
    p.reset(new Forward(setpoint_error));
   else
    p.reset(new Forward(setpoint_error));
+*/
+
+///* normal pointer
+  //Decide Mode
+  Mode* p = nullptr;
+  if(m_keep_heading)
+   p = new Keepheading(keepheading_error);
+  else if((setpoint_error < 180 && setpoint_error > 90 || setpoint_error < -90 && setpoint_error > -180) && distance < m_tolerance_radius+10)
+   p = new Forward(setpoint_error);
+  else
+   p = new Forward(setpoint_error);
+//*/
 
   // Go go!
   p->CalculateError();
-  CheckMode(p.get());
+  //CheckMode(p.get()); //smart pointer
+  CheckMode(p);         //normal pointer
 
   double curr_time = MOOSTime();
   double delta_time = curr_time - m_previous_time;
@@ -195,6 +209,9 @@ bool PoseKeepingX::Iterate()
 
   m_previous_error = p->geterror();
   m_previous_time = curr_time;
+
+  //normal pointer release
+  delete p;
 
   PublishFreshMOOSVariables();
 
