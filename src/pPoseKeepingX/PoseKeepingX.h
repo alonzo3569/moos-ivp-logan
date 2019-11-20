@@ -32,10 +32,10 @@ class PoseKeepingX : public AppCastingMOOSApp
 
  protected: // My function
   double  Distance(double, double, double, double);
-  void    CheckMode(Mode*);
+  void    CheckMode(const Mode);
   double  CheckSpeed(double);
   void    postPolygons();
-  string  DoubleToString(double input);
+  string  DoubleToString(double);
 
  protected: // Mail Callbacks
 #if 0 // Keep this as an example for callbacks
@@ -53,6 +53,7 @@ class PoseKeepingX : public AppCastingMOOSApp
   bool   m_keep_heading;
   double m_arrival_radius;
   double m_tolerance_radius; 
+  Mode   mode;
 
  private: // State variables
   std::string m_switch_mode;
@@ -65,6 +66,8 @@ class PoseKeepingX : public AppCastingMOOSApp
   double m_upper_speed;
   double m_lower_speed;
 
+  // Degub tool
+  double m_testing;
 };
 
 #endif

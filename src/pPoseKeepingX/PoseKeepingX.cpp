@@ -41,6 +41,8 @@ PoseKeepingX::PoseKeepingX()
   m_kd = 0;
   m_upper_speed = 100;
   m_lower_speed = 10;
+  // Debug tool
+  m_testing = 0;
 }
 
 //---------------------------------------------------------
@@ -168,50 +170,41 @@ bool PoseKeepingX::Iterate()
   if(distance > m_tolerance_radius){
     m_keep_heading = false;}
 
-/* smart pointer
-  // Decide Mode
-  unique_ptr<Mode> p;
+  // Normal class version 
   if(m_keep_heading)
-   p.reset(new Keepheading(keepheading_error));
+   mode.setup(keepheading_error, "Keepheading");
   else if((setpoint_error < 180 && setpoint_error > 90 || setpoint_error < -90 && setpoint_error > -180) && distance < m_tolerance_radius+10)
-   p.reset(new Forward(setpoint_error));
+   mode.setup(setpoint_error, "Forward"); //mode.setup(setpoint_error, "Backward");
   else
-   p.reset(new Forward(setpoint_error));
-*/
-
-///* normal pointer
-  //Decide Mode
-  Mode* p = nullptr;
-  if(m_keep_heading)
-   p = new Keepheading(keepheading_error);
-  else if((setpoint_error < 180 && setpoint_error > 90 || setpoint_error < -90 && setpoint_error > -180) && distance < m_tolerance_radius+10)
-   p = new Forward(setpoint_error);
-  else
-   p = new Forward(setpoint_error);
-//*/
+   mode.setup(setpoint_error, "Forward");
 
   // Go go!
-  p->CalculateError();
-  //CheckMode(p.get()); //smart pointer
-  CheckMode(p);         //normal pointer
+  mode.CalculateError();
+  CheckMode(mode);
 
   double curr_time = MOOSTime();
   double delta_time = curr_time - m_previous_time;
+  m_steady_error = m_steady_error + mode.geterror()*delta_time;
+  // Debug
+  m_testing = delta_time;
 
-  double thrust = m_kp*(p->geterror()) + m_kd*((p->geterror() - m_previous_error)/delta_time) + m_ki*m_steady_error;
+  double thrust = m_kp*(mode.geterror()) + m_kd*((mode.geterror() - m_previous_error)/delta_time) + m_ki*m_steady_error;
+  Notify("DEBUG",(mode.geterror() - m_previous_error)/delta_time);
+  Notify("DEBUG1",mode.geterror());
+  Notify("DEBUG2",m_previous_error);
+  Notify("DEBUG3",delta_time);
+  Notify("DEBUG4",m_kd);
+
   double speed = m_kp*distance;
   speed = CheckSpeed(speed);
 
-  p->Output(thrust, speed);
+  mode.Output(thrust, speed);
 
-  Notify("DESIRED_THRUST_L", p->getthrustl());
-  Notify("DESIRED_THRUST_R", p->getthrustr());
+  Notify("DESIRED_THRUST_L", mode.getthrustl());
+  Notify("DESIRED_THRUST_R", mode.getthrustr());
 
-  m_previous_error = p->geterror();
+  m_previous_error = mode.geterror();
   m_previous_time = curr_time;
-
-  //normal pointer release
-  delete p;
 
   PublishFreshMOOSVariables();
 
@@ -317,7 +310,17 @@ bool PoseKeepingX::buildReport()
   actab << "Alpha | Bravo | Charlie | Delta";
   actab.addHeaderLines();
   actab << "one" << "two" << "three" << "four";
-  m_msgs << actab.getFormattedString();
+  m_msgs << actab.getFormattedString() << endl;
+  m_msgs <<  " m_curr_error: " << mode.geterror() << endl;
+  m_msgs <<  "       m_mode: " << mode.getmode() << endl;
+  m_msgs <<  "   m_thrust_l: "  << mode.getthrustl() << endl;
+  m_msgs <<  "   m_thrust_r: "  << mode.getthrustr() << endl;
+  m_msgs << "============================================ \n";
+  m_msgs <<  "m_switch_mode   : "  << m_switch_mode << endl;
+  m_msgs <<  "m_previous_time : "  << m_previous_time << endl;
+  m_msgs <<  "m_previous_error: "  << m_previous_error << endl;
+  m_msgs <<  "m_steady_error  : "  << m_steady_error << endl;
+  m_msgs <<  "delta_time      : "  << m_testing << endl;
 
   return(true);
 }
@@ -336,14 +339,14 @@ double PoseKeepingX::Distance(double current_x, double current_y, double destina
 // Procedure: CheckMode
 //   Purpose: If the mode changed, reset PID variables
 
-void PoseKeepingX::CheckMode(Mode* ptr)
+void PoseKeepingX::CheckMode(const Mode mode)
 {
-	if(ptr->getmode() != m_switch_mode)
+	if(mode.getmode() != m_switch_mode)
 	{
-		m_previous_time = MOOSTime();
+		//m_previous_time = MOOSTime();
 		m_previous_error = 0;
 		m_steady_error = 0;
-		m_switch_mode = ptr->getmode();
+		m_switch_mode = mode.getmode();
 	}
 	return;
 }
