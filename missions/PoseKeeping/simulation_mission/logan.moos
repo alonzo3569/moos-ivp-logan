@@ -27,9 +27,9 @@ ProcessConfig = ANTLER
   Run = uProcessWatch	  @ NewConsole = false
   Run = pNodeReporter	  @ NewConsole = false
   Run = uTimerScript	  @ NewConsole = false
-  Run = uXMS		  @ NewConsole = true
+  Run = uXMS		  @ NewConsole = false
   //Run = pPoseKeeping	  @ NewConsole = false
-  Run = pPoseKeepingX	  @ NewConsole = true
+  Run = pPoseKeepingX	  @ NewConsole = false
 }
 
 //------------------------------------------
