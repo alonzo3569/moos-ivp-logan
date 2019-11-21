@@ -457,7 +457,7 @@ bool PoseKeepingX::Filter()
   if(m_pre_heading == -1){}
   else
   {
-	if(abs(m_nav_heading - m_pre_heading) > 120 && abs(m_nav_heading - m_pre_heading) < 340) // from logfile data result
+	if(abs(m_nav_heading - m_pre_heading) > 120 && abs(m_nav_heading - m_pre_heading) < 270) // from logfile data result 340 10.21expiment
 	{
 		return(false);
 	}
