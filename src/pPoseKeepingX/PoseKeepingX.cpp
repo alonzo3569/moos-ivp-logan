@@ -29,7 +29,7 @@ PoseKeepingX::PoseKeepingX()
   m_desired_heading = 0;
   m_active = false;
   m_keep_heading = false;
-  m_arrival_radius = 10;
+  m_arrival_radius = 3;
   m_tolerance_radius = 0;
 
   m_previous_time = 0;
@@ -158,7 +158,7 @@ bool PoseKeepingX::Iterate()
     AppCastingMOOSApp::PostReport();
     return(true);}
 
-  // Config
+  // Calculate Params for deciding mode
   double distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
   double keepheading_error = m_desired_heading - m_nav_heading;
   double setpoint_error = relAng(m_osx, m_osy, m_desired_x, m_desired_y) - m_nav_heading;
@@ -170,39 +170,38 @@ bool PoseKeepingX::Iterate()
   if(distance > m_tolerance_radius){
     m_keep_heading = false;}
 
-  // Normal class version 
+  // Decide Mode 
   if(m_keep_heading)
    mode.setup(keepheading_error, "Keepheading");
-  else if((setpoint_error < 180 && setpoint_error > 90 || setpoint_error < -90 && setpoint_error > -180) && distance < m_tolerance_radius+10)
-   mode.setup(setpoint_error, "Forward"); //mode.setup(setpoint_error, "Backward");
+  else if(((setpoint_error < 270 && setpoint_error > 90) || (setpoint_error < -90 && setpoint_error > -270)) && distance < m_tolerance_radius+10)
+   mode.setup(setpoint_error, "Backward");
   else
    mode.setup(setpoint_error, "Forward");
 
-  // Go go!
+  //Calculate error for PID
   mode.CalculateError();
+
+  // Check if mode change, reset PID params
   CheckMode(mode);
 
+  // Params for PID
   double curr_time = MOOSTime();
   double delta_time = curr_time - m_previous_time;
   m_steady_error = m_steady_error + mode.geterror()*delta_time;
-  // Debug
-  m_testing = delta_time;
 
+  // Calculate speed and check speed value
   double thrust = m_kp*(mode.geterror()) + m_kd*((mode.geterror() - m_previous_error)/delta_time) + m_ki*m_steady_error;
-  Notify("DEBUG",(mode.geterror() - m_previous_error)/delta_time);
-  Notify("DEBUG1",mode.geterror());
-  Notify("DEBUG2",m_previous_error);
-  Notify("DEBUG3",delta_time);
-  Notify("DEBUG4",m_kd);
-
   double speed = m_kp*distance;
   speed = CheckSpeed(speed);
 
+  // Calculate thrust left & right
   mode.Output(thrust, speed);
 
+  // Notify
   Notify("DESIRED_THRUST_L", mode.getthrustl());
   Notify("DESIRED_THRUST_R", mode.getthrustr());
 
+  // Save PID params
   m_previous_error = mode.geterror();
   m_previous_time = curr_time;
 
@@ -343,7 +342,6 @@ void PoseKeepingX::CheckMode(const Mode mode)
 {
 	if(mode.getmode() != m_switch_mode)
 	{
-		//m_previous_time = MOOSTime();
 		m_previous_error = 0;
 		m_steady_error = 0;
 		m_switch_mode = mode.getmode();

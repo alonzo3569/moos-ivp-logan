@@ -66,15 +66,11 @@ void Mode::Output(double thrust, double speed)
 {
 	if (m_mode == "Keepheading")
 	{
-		//setthrustl( thrust);
-		//setthrustr(-thrust);
 		m_thrust_l =  thrust;
 		m_thrust_r = -thrust;
 	}
 	else if (m_mode == "Forward")
 	{
-		//setthrustl(speed + thrust);
-		//setthrustr(speed - thrust);
 		m_thrust_l = speed + thrust;
 		m_thrust_r = speed - thrust;
 	}

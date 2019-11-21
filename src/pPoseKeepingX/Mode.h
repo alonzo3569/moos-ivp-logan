@@ -23,16 +23,12 @@ private:
 public:
     // constructor & destructor
     Mode();
-    /*Mode(double error, string msg){
-	m_curr_error = error;
-	m_mode = msg;
-    }*/
     ~Mode() {}
     // setter
-    void seterror(double error){m_curr_error = error;}
-    void setmode(string mode){m_mode = mode;}
-    void setthrustr(double thrust){m_thrust_r = thrust;}
-    void setthrustl(double thrust){m_thrust_l = thrust;}
+    void seterror(double error)		{m_curr_error = error;}
+    void setmode(string mode)		{m_mode = mode;}
+    void setthrustr(double thrust)	{m_thrust_r = thrust;}
+    void setthrustl(double thrust)	{m_thrust_l = thrust;}
     void setup(double error, string msg);
     
     // getter
@@ -41,41 +37,9 @@ public:
     double getthrustr() const	{return m_thrust_r;}
     double getthrustl() const	{return m_thrust_l;}
 
-
-    // absturact functions
-    //virtual void CalculateError() = 0;
-    //virtual void Output(double, double) = 0;
-
     // action
     void CalculateError();
     void Output(double, double);
 };
-/*
-class Keepheading: public Mode
-{
-private:
-public:
-    Keepheading(double error): Mode(error) {
-        setmode("keepheading");
-	cout << "Keep con" << endl;
-    }
-    ~Keepheading() {cout << "Keep de" << endl;}
-    void CalculateError();
-    void Output(double, double);
-};
-
-class Forward: public Mode
-{
-private:
-public:
-    Forward(double error): Mode(error) {
-        setmode("forward");
-	cout << "Forward con" << endl;
-    }
-    ~Forward() {cout << "Forward de" << endl;}
-    void CalculateError();
-    void Output(double, double);
-};
-*/
 
 #endif 
