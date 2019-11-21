@@ -34,8 +34,12 @@ class PoseKeepingX : public AppCastingMOOSApp
   double  Distance(double, double, double, double);
   void    CheckMode(const Mode);
   double  CheckSpeed(double);
-  void    postPolygons();
   string  DoubleToString(double);
+
+  //10.21
+  void    ShowCompassHeading();
+  void    PostPolygons(string mode = "");
+  bool    Filter();
 
  protected: // Mail Callbacks
 #if 0 // Keep this as an example for callbacks
@@ -66,8 +70,8 @@ class PoseKeepingX : public AppCastingMOOSApp
   double m_upper_speed;
   double m_lower_speed;
 
-  // Degub tool
-  double m_testing;
+  // 10.21experiment feature
+  double m_pre_heading;
 };
 
 #endif

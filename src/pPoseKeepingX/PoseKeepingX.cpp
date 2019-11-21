@@ -13,6 +13,8 @@
 //logan
 #include "AngleUtils.h"
 #include "ColorPack.cpp"
+//10.21
+#include "XYVector.h"
 
 using namespace std;
 
@@ -41,8 +43,9 @@ PoseKeepingX::PoseKeepingX()
   m_kd = 0;
   m_upper_speed = 100;
   m_lower_speed = 10;
-  // Debug tool
-  m_testing = 0;
+
+  //10.21experiment feature
+  m_pre_heading = -1;
 }
 
 //---------------------------------------------------------
@@ -72,7 +75,7 @@ bool PoseKeepingX::OnNewMail(MOOSMSG_LIST &NewMail)
      if(key == "FOO") 
        cout << "great!";
 
-     else if(key == "NAV_HEADING")
+     else if(key == "NAV_HEADING_CPNVG") //CPNVG
      {
 	m_nav_heading = dval; 
      }
@@ -91,12 +94,12 @@ bool PoseKeepingX::OnNewMail(MOOSMSG_LIST &NewMail)
 	{
 		m_active = true; 
 		m_previous_time = MOOSTime();
-		postPolygons();
 	}
 	else
 	{
 		m_active = false;
-		postPolygons();
+		PostPolygons();
+		ShowCompassHeading();
 	}
      }
 
@@ -136,7 +139,7 @@ bool PoseKeepingX::OnConnectToServer()
 void PoseKeepingX::registerVariables()
 {
   AppCastingMOOSApp::RegisterVariables();
-     Register("NAV_HEADING", 0);
+     Register("NAV_HEADING_CPNVG", 0); //CPNVG
      Register("NAV_X", 0);
      Register("NAV_Y", 0);
      Register("THRUST_MODE_DIFFERENTIAL",0 );
@@ -154,6 +157,16 @@ bool PoseKeepingX::Iterate()
 
   // Wait until active
   if(!m_active){
+    PublishFreshMOOSVariables();
+    AppCastingMOOSApp::PostReport();
+    return(true);}
+
+  // Show Compass Heading when active
+  ShowCompassHeading();
+
+  // Filter: CheckCompassHeading
+  bool result = Filter();
+  if(!result){
     PublishFreshMOOSVariables();
     AppCastingMOOSApp::PostReport();
     return(true);}
@@ -178,6 +191,9 @@ bool PoseKeepingX::Iterate()
   else
    mode.setup(setpoint_error, "Forward");
 
+  // Show PoseKeeping region
+  PostPolygons(mode.getmode());
+
   //Calculate error for PID
   mode.CalculateError();
 
@@ -197,6 +213,9 @@ bool PoseKeepingX::Iterate()
   // Calculate thrust left & right
   mode.Output(thrust, speed);
 
+  // Check thrust value
+  mode.CheckValue();
+
   // Notify
   Notify("DESIRED_THRUST_L", mode.getthrustl());
   Notify("DESIRED_THRUST_R", mode.getthrustr());
@@ -204,6 +223,9 @@ bool PoseKeepingX::Iterate()
   // Save PID params
   m_previous_error = mode.geterror();
   m_previous_time = curr_time;
+
+  // Filter: Save m_nav_heading to m_pre_heading
+  m_pre_heading = m_nav_heading; 
 
   PublishFreshMOOSVariables();
 
@@ -319,7 +341,6 @@ bool PoseKeepingX::buildReport()
   m_msgs <<  "m_previous_time : "  << m_previous_time << endl;
   m_msgs <<  "m_previous_error: "  << m_previous_error << endl;
   m_msgs <<  "m_steady_error  : "  << m_steady_error << endl;
-  m_msgs <<  "delta_time      : "  << m_testing << endl;
 
   return(true);
 }
@@ -350,8 +371,8 @@ void PoseKeepingX::CheckMode(const Mode mode)
 }
 
 //---------------------------------------------------------------
-// Procedure: CheckMode
-//   Purpose: If the mode changed, reset PID variables
+// Procedure: CheckSpeed
+//   Purpose: Decide Upper and lower limit of the speed
 
 double PoseKeepingX::CheckSpeed(double speed)
 {
@@ -365,27 +386,7 @@ double PoseKeepingX::CheckSpeed(double speed)
 	}
 	return(speed);	
 }
-//------------------------------------------------------------
-// Procedure: postPolygons
-//   Purpose: Post KeepHeading region on pMarineViewer
 
-void PoseKeepingX::postPolygons()
-{
-    string spec = "format=radial,label=destination_point,edge_color=blue,vertex_color=blue,fill_color=grey90,vertex_size=0,edge_size=1";
-    spec += ",x=" + DoubleToString(m_desired_x);
-    spec += ",y=" + DoubleToString(m_desired_y);
-    spec += ",radius=" + DoubleToString(m_tolerance_radius);
-    spec += ",pts=24, snap=1";
-    if(m_active)
-    {
-	spec += ",active=true";
-    }
-    else
-    {
-	spec += ",active=false";
-    }
-    Notify("VIEW_POLYGON", spec);
-}
 //------------------------------------------------------------
 // Procedure: DoubleToString
 //   Purpose: Change double to string
@@ -397,3 +398,70 @@ string PoseKeepingX::DoubleToString(double input)
     msg >> output;
     return(output);
 }
+
+//------------------------------------------------------------
+// Procedure: ShowCompassHeading
+//   Purpose: Using VIEW_VECTOR to show compass heading on pMarineViewer
+
+void PoseKeepingX::ShowCompassHeading()
+{
+	XYVector vector(m_osx, m_osy, 5, m_nav_heading);
+	vector.set_active(m_active);
+	vector.set_label("hdg");
+	//vector.set_color("fill", "orange");
+	vector.set_vertex_size(5);
+	vector.set_edge_size(5);
+	vector.set_edge_color("green");
+	vector.setHeadSize(2);
+	string str = vector.get_spec();
+	m_Comms.Notify("VIEW_VECTOR", str);
+}
+
+//------------------------------------------------------------
+// Procedure: PostPolygons
+//   Purpose: Post KeepHeading region on pMarineViewer
+
+void PoseKeepingX::PostPolygons(string mode)
+{
+	string spec = "format=radial,label=destination,vertex_color=blue,fill_color=grey90,vertex_size=0,edge_size=1,pts=24,snap=1";
+	spec += ",x=" + DoubleToString(m_desired_x);
+	spec += ",y=" + DoubleToString(m_desired_y);
+	spec += ",radius=" + DoubleToString(m_tolerance_radius);
+
+	if(!m_active)
+	{
+		spec += ",active=false";
+		Notify("VIEW_POLYGON",spec);
+		return;
+	}
+
+	spec += ",active=true";
+	if(mode == "Keepheading")
+	{
+		
+		spec += ",edge_color=blue";
+		Notify("VIEW_POLYGON",spec);
+		return;
+	}
+
+	spec += ",edge_color=red";
+	Notify("VIEW_POLYGON",spec);
+}
+
+//------------------------------------------------------------
+// Procedure: Filter
+//   Purpose: Remove unreasonable heading provided by compass
+
+bool PoseKeepingX::Filter()
+{
+  if(m_pre_heading == -1){}
+  else
+  {
+	if(abs(m_nav_heading - m_pre_heading) > 120 && abs(m_nav_heading - m_pre_heading) < 340) // from logfile data result
+	{
+		return(false);
+	}
+  }
+  return(true);
+}
+

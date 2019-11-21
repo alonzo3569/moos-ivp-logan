@@ -20,6 +20,11 @@ private:
     double m_thrust_r = 0;
     double m_thrust_l = 0;
 
+    //10.21experiment feature
+    const double m_back_thrust_limit  = -33;
+    const double m_front_thrust_limit =  17;
+    const unsigned int m_factor = 3;
+
 public:
     // constructor & destructor
     Mode();
@@ -40,6 +45,7 @@ public:
     // action
     void CalculateError();
     void Output(double, double);
+    void CheckValue();
 };
 
 #endif 
