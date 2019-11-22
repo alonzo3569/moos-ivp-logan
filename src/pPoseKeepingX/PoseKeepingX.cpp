@@ -23,17 +23,6 @@ using namespace std;
 
 PoseKeepingX::PoseKeepingX()
 {
-  m_nav_heading = 0;
-  m_osx = 0;
-  m_osy = 0;
-  m_desired_x = 0;
-  m_desired_y = 0;
-  m_desired_heading = 0;
-  m_active = false;
-  m_keep_heading = false;
-  m_arrival_radius = 3;
-  m_tolerance_radius = 0;
-
   m_previous_time = 0;
   m_previous_error = 0;
   m_steady_error = 0;
@@ -43,6 +32,19 @@ PoseKeepingX::PoseKeepingX()
   m_kd = 0;
   m_upper_speed = 100;
   m_lower_speed = 10;
+
+  m_nav_heading = 0;
+  m_osx = 0;
+  m_osy = 0;
+  m_desired_x = 0;
+  m_desired_y = 0;
+  m_desired_heading = 0;
+  m_active = false;
+  m_keep_heading = false;
+  m_arrival_radius = 1;
+  m_tolerance_radius = 0;
+  m_distance = 0; //for report
+  m_gps_heading = 0; // for report
 
   //10.21experiment feature
   m_pre_heading = -1;
@@ -103,6 +105,11 @@ bool PoseKeepingX::OnNewMail(MOOSMSG_LIST &NewMail)
 	}
      }
 
+     else if(key == "NAV_HEADING") //for report
+     {
+	m_gps_heading = dval; 
+     }
+
      else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
        reportRunWarning("Unhandled Mail: " + key);
    }
@@ -143,6 +150,7 @@ void PoseKeepingX::registerVariables()
      Register("NAV_X", 0);
      Register("NAV_Y", 0);
      Register("THRUST_MODE_DIFFERENTIAL",0 );
+     Register("NAV_HEADING", 0); //for report
 
   RegisterMOOSVariables();
 }
@@ -172,21 +180,21 @@ bool PoseKeepingX::Iterate()
     return(true);}
 
   // Calculate Params for deciding mode
-  double distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
+  m_distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
   double keepheading_error = m_desired_heading - m_nav_heading;
   double setpoint_error = relAng(m_osx, m_osy, m_desired_x, m_desired_y) - m_nav_heading;
 
   // Behavior
-  if(distance < m_arrival_radius){
+  if(m_distance < m_arrival_radius){
     m_keep_heading = true;}
   // If vehicle outside KeepHeading region, KeepHeading mode Off (will become SetPoint mode)
-  if(distance > m_tolerance_radius){
+  if(m_distance > m_tolerance_radius){
     m_keep_heading = false;}
 
   // Decide Mode 
   if(m_keep_heading)
    mode.setup(keepheading_error, "Keepheading");
-  else if(((setpoint_error < 270 && setpoint_error > 90) || (setpoint_error < -90 && setpoint_error > -270)) && distance < m_tolerance_radius+10)
+  else if(((setpoint_error < 270 && setpoint_error > 90) || (setpoint_error < -90 && setpoint_error > -270)) && m_distance < m_tolerance_radius+10)
    mode.setup(setpoint_error, "Backward");
   else
    mode.setup(setpoint_error, "Forward");
@@ -207,7 +215,7 @@ bool PoseKeepingX::Iterate()
 
   // Calculate speed and check speed value
   double thrust = m_kp*(mode.geterror()) + m_kd*((mode.geterror() - m_previous_error)/delta_time) + m_ki*m_steady_error;
-  double speed = m_kp*distance;
+  double speed = m_kp*m_distance;
   speed = CheckSpeed(speed);
 
   // Calculate thrust left & right
@@ -321,17 +329,81 @@ bool PoseKeepingX:onMessageFoo(CMOOSMsg& foo)
 
 //------------------------------------------------------------
 // Procedure: buildReport()
+//      Note: A virtual function of the AppCastingMOOSApp superclass, 
+//            conditionally invoked if either a terminal or appcast 
+//            report is needed.
+//
+//    Desired Pose & Heading            Current Pose & Heading
+//  ----------------- ---------         -------- --------------
+//           Heading: 180                  Mode: KeepHeading
+//             (X,Y): 0,0                 (X,Y): -4.93,-96.05
+//  Tolerance radius: 5.0           IMU_Heading: 134.8   
+//                                     Distance: 50.6   
+//                                   Thrust_lft: 20
+//                                   Thrust_rgt: -60
+//
+//
+//
+//  Compare GPS & IMU Heading                   Thrust left & right
+//  --------------------------------------     ------------------------
+//        GPS Heading(NAV_HEADING): 135.7       DESIRED_THRUST_L: 20
+//  IMU Heading(NAV_HEADING_CPNVG): 150.6       DESIRED_THRUST_R:-60
+//
+// DESIRED_THRUST_R, DESIRED_THRUST_L, THRUST_MODE_DIFFERENTIAL, DISTANCE, CURR_MODE, SPEED, THRUST, POSITION, DESIRED_HEADING, NAV_HEADING, NAV_HEADING_CPNVG
 
 bool PoseKeepingX::buildReport()
 {
-  m_msgs << "pPoseKeepingX Report\n";
-  m_msgs << "============================================ \n";
-
-  ACTable actab(4);
-  actab << "Alpha | Bravo | Charlie | Delta";
+  m_msgs << endl;
+  ACTable actab(4,1);
+  actab << "Desired Pose & Heading |  | Current Pose & Heading| ";
   actab.addHeaderLines();
-  actab << "one" << "two" << "three" << "four";
+  actab.setColumnPadStr(1, "   "); // Pad w/ extra blanks between cols 1&2
+  actab.setColumnPadStr(3, "   "); // Pad w/ extra blanks between cols 3&4
+  actab.setColumnJustify(0, "left");
+  actab.setColumnJustify(2, "left");
+  actab.setColumnJustify(4, "left");
+
+  //Desired Pose & Heading | Current Pose & Heading
+  actab << "Heading:" << DoubleToString(m_desired_heading);
+  actab << "Mode:" << mode.getmode();
+  actab << "(X,Y):" << DoubleToString(m_desired_x) + "," + DoubleToString(m_desired_y);
+  actab << "(X,Y):" << DoubleToString(m_osx) + "," + DoubleToString(m_osy);
+  actab << "Tolerance Radius:" << DoubleToString(m_tolerance_radius);
+  actab << "IMU Heading:" << DoubleToString(m_nav_heading);
+  actab << "" << "" << "Distance:" << DoubleToString(m_distance);
+  actab << "" << "" << "Thrust_lft:" << DoubleToString(mode.getthrustl());
+  actab << "" << "" << "Thrust_rgt:" << DoubleToString(mode.getthrustr());
   m_msgs << actab.getFormattedString() << endl;
+
+  //Compare GPS & IMU Heading
+  m_msgs << endl;
+  m_msgs << endl;
+  actab = ACTable(2,1);
+  actab << "Compare GPS & IMU Heading |  ";
+  actab.addHeaderLines();
+  actab.setColumnPadStr(1, "   "); // Pad w/ extra blanks between cols 1&2
+  actab.setColumnJustify(0, "left");
+  actab.setColumnJustify(2, "left");
+
+  actab << "GPS Heading(NAV_HEADING):" << DoubleToString(m_gps_heading); //subscribe nav_heading!
+  actab << "IMU Heading(NAV_HEADING_CPNVG):" << DoubleToString(m_nav_heading);
+  m_msgs << actab.getFormattedString() << endl;
+
+  //Compare Thrust left & right
+  m_msgs << endl;
+  m_msgs << endl;
+  actab = ACTable(2,1);
+  actab << " Thrust left & right |  ";
+  actab.addHeaderLines();
+  actab.setColumnPadStr(1, "   "); // Pad w/ extra blanks between cols 1&2
+  actab.setColumnJustify(0, "left");
+  actab.setColumnJustify(2, "left");
+
+  actab << "DESIRED_THRUST_L:" << DoubleToString(mode.getthrustl());
+  actab << "DESIRED_THRUST_R:" << DoubleToString(mode.getthrustr());
+  m_msgs << actab.getFormattedString() << endl;
+
+/* For debugging
   m_msgs <<  " m_curr_error: " << mode.geterror() << endl;
   m_msgs <<  "       m_mode: " << mode.getmode() << endl;
   m_msgs <<  "   m_thrust_l: "  << mode.getthrustl() << endl;
@@ -341,7 +413,7 @@ bool PoseKeepingX::buildReport()
   m_msgs <<  "m_previous_time : "  << m_previous_time << endl;
   m_msgs <<  "m_previous_error: "  << m_previous_error << endl;
   m_msgs <<  "m_steady_error  : "  << m_steady_error << endl;
-
+*/
   return(true);
 }
 

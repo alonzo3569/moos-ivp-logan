@@ -47,6 +47,17 @@ class PoseKeepingX : public AppCastingMOOSApp
 #endif
 
  private: // Configuration variables
+  std::string m_switch_mode;
+  double m_previous_time;
+  double m_previous_error;
+  double m_steady_error;
+  double m_kp;
+  double m_ki;
+  double m_kd;
+  double m_upper_speed;
+  double m_lower_speed;
+
+ private: // State variables
   double m_nav_heading;
   double m_osx;
   double m_osy;
@@ -57,18 +68,9 @@ class PoseKeepingX : public AppCastingMOOSApp
   bool   m_keep_heading;
   double m_arrival_radius;
   double m_tolerance_radius; 
+  double m_distance;  //for report
+  double m_gps_heading; //for report
   Mode   mode;
-
- private: // State variables
-  std::string m_switch_mode;
-  double m_previous_time;
-  double m_previous_error;
-  double m_steady_error;
-  double m_kp;
-  double m_ki;
-  double m_kd;
-  double m_upper_speed;
-  double m_lower_speed;
 
   // 10.21experiment feature
   double m_pre_heading;
