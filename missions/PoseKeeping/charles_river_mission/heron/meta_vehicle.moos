@@ -193,7 +193,7 @@ ProcessConfig = uSimMarine
 
 #ifdef SIM
   //drift_x       = 0.3
-  drift_y       = 0.1
+  drift_y       = 0.3
 #else
 #endif
 
