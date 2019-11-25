@@ -15,7 +15,6 @@
 #include "ColorPack.cpp"
 //10.21
 #include "XYVector.h"
-#include "Mode.cpp"
 
 using namespace std;
 
