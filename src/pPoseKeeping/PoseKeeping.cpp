@@ -222,7 +222,7 @@ bool PoseKeeping::Iterate()
   mode.Output(thrust, speed);
 
   // Check thrust value
-  mode.CheckValue();
+  //mode.CheckValue();
 
   // Notify
   Notify("DESIRED_THRUST_L", mode.getthrustl());
@@ -385,7 +385,7 @@ bool PoseKeeping::buildReport()
   actab.setColumnJustify(0, "left");
   actab.setColumnJustify(2, "left");
 
-  actab << "GPS Heading(NAV_HEADING):" << DoubleToString(m_gps_heading); //subscribe nav_heading!
+  actab << "GPS Heading(NAV_HEADING):" << DoubleToString(m_nav_heading); //subscribe nav_heading!
   actab << "IMU Heading(NAV_HEADING_CPNVG):" << DoubleToString(m_nav_heading);
   m_msgs << actab.getFormattedString() << endl;
 

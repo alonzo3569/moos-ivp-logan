@@ -3,7 +3,7 @@
 #-------------------------------------------------------
 #  Part 1: Check for and handle command-line arguments
 #-------------------------------------------------------
-SHORE_IP=192.168.1.223
+SHORE_IP=192.168.1.214
 SHORE_LISTEN="9300"
 TIME_WARP=1
 POSITION=20,-15

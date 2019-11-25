@@ -67,49 +67,8 @@ void Mode::Output(double thrust, double speed)
 {
 	if (m_mode == "Keepheading")
 	{
-		//m_thrust_l =  thrust;
-		//m_thrust_r = -thrust;
-
-		if (thrust > 0)
-		{
-			/*if (thrust < m_front_thrust_limit)
-			{
-				m_thrust_l = m_front_thrust_limit;
-				m_thrust_r = -m_factor * m_front_thrust_limit;
-			}
-			else if (thrust >= m_front_thrust_limit && thrust <= 100.0/m_factor)
-			{
-				m_thrust_l = thrust;
-				m_thrust_r = -m_factor * thrust;
-			}
-			else if (thrust > 100.0/m_factor)
-			{
-				m_thrust_l = 100.0/m_factor;
-				m_thrust_r = -100;
-			}*/
-			m_thrust_l =  20;
-			m_thrust_r = -60;
-		}
-		else
-		{
-			/*if (abs(thrust) < m_front_thrust_limit)
-			{
-				m_thrust_l = -m_factor * m_front_thrust_limit;
-				m_thrust_r = m_front_thrust_limit;
-			}
-			else if (abs(thrust) >= m_front_thrust_limit && thrust <= 100.0/m_factor)
-			{
-				m_thrust_l = thrust;
-				m_thrust_r = -m_factor *thrust;
-			}
-			else if (abs(thrust) > 100.0/m_factor)
-			{
-				m_thrust_l = -100;
-				m_thrust_r = 100.0/m_factor;
-			}*/
-			m_thrust_r =  20;
-			m_thrust_l = -60;
-		}
+		m_thrust_l =  thrust;
+		m_thrust_r = -thrust;
 
 	}
 	else if (m_mode == "Forward")
