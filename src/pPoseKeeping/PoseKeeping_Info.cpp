@@ -1,8 +1,8 @@
 /****************************************************************/
-/*   NAME: Logan                                             */
+/*   NAME: Logan                                                */
 /*   ORGN: MIT Cambridge MA                                     */
-/*   FILE: PoseKeeping_Info.cpp                               */
-/*   DATE: Dec 29th 1963                                        */
+/*   FILE: PoseKeeping_Info.cpp                                 */
+/*   DATE: 2019/11/15                                           */
 /****************************************************************/
 
 #include <cstdlib>
@@ -66,14 +66,19 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pPoseKeeping Example MOOS Configuration                   ");
+  blu("pPoseKeeping  Example MOOS Configuration                        ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = pPoseKeeping                              ");
+  blk("ProcessConfig = pPoseKeepingX                                   ");
   blk("{                                                               ");
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
-  blk("                                                                ");
+  blk("  position  = 20,-15                                            ");
+  blk("  heading   = 180                                               ");
+  blk("  Kp        = 1.2                                               ");
+  blk("  Kd        = 0.0                                               ");
+  blk("  Ki        = 0.0                                               ");
+  blk("  tolerance_radius = 5                                          ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);
@@ -87,23 +92,26 @@ void showInterfaceAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pPoseKeeping INTERFACE                                    ");
+  blu("pPoseKeeping  INTERFACE                                         ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
   blk("                                                                ");
   blk("SUBSCRIPTIONS:                                                  ");
   blk("------------------------------------                            ");
-  blk("  NODE_MESSAGE = src_node=alpha,dest_node=bravo,var_name=FOO,   ");
-  blk("                 string_val=BAR                                 ");
+  blk("  NAV_HEADING_CPNVG              = [0,359]                      ");
+  blk("  NAV_HEADING                    = [0,359]                      ");
+  blk("  NAV_X                          = [-inf/+inf]                  ");
+  blk("  NAV_Y                          = [-inf/+inf]                  ");
+  blk("  THRUST_MODE_DIFFERENTIAL       = [true/false]                 ");
   blk("                                                                ");
   blk("PUBLICATIONS:                                                   ");
   blk("------------------------------------                            ");
-  blk("  Publications are determined by the node message content.      ");
+  blk("  DESIRED_THRUST_L   		= [-100,100]                   ");
+  blk("  DESIRED_THRUST_R   		= [-100,100]                   ");
   blk("                                                                ");
   exit(0);
 }
-
 //----------------------------------------------------------------
 // Procedure: showReleaseInfoAndExit
 

@@ -1,8 +1,8 @@
 /************************************************************/
-/*    NAME: Logan Zhang                                     */
+/*    NAME: Logan                                           */
 /*    ORGN: MIT                                             */
-/*    FILE: PoseKeeping.h                                   */
-/*    DATE: September 15th, 2019                            */
+/*    FILE: PoseKeeping.h                                  */
+/*    DATE: 2019/11/15                                      */
 /************************************************************/
 
 #ifndef PoseKeeping_HEADER
@@ -10,100 +10,70 @@
 
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
 #include "Mode.h"
+#include <memory>
 
 class PoseKeeping : public AppCastingMOOSApp
 {
  public:
-   PoseKeeping();
-   ~PoseKeeping();
-/*
-   class Data
-   {
-    public:
-      double m_curr_heading;
-      double m_curr_error;
-      double m_curr_distance;
-      std::string m_mode;
+  PoseKeeping();
+  ~PoseKeeping() {};
 
-      //keep heading mode data block constructor
-      Data(double heading):m_curr_heading(heading)
-      {
-	m_curr_error = 0;
-	m_curr_distance = 0;
-	m_mode = "KeepHeading";
-      }
+ protected: // Standard MOOSApp functions to overload
+  bool OnNewMail(MOOSMSG_LIST &NewMail);
+  bool Iterate();
+  bool OnConnectToServer();
+  bool OnStartUp();
 
-      //set point mode data block
-      Data(double heading, double distance):m_curr_heading(heading),m_curr_distance(distance)
-      {
-	m_curr_error = 0;
-	m_mode = '\0';
-      }
-   };
-*/
-
- protected: // Standard MOOSApp functions to overload  
-   bool OnNewMail(MOOSMSG_LIST &NewMail);
-   bool Iterate();
-   bool OnConnectToServer();
-   bool OnStartUp();
-
- protected: // Standard AppCastingMOOSApp function to overload 
-   bool buildReport();
+ protected: // Standard AppCastingMOOSApp function to overload
+  bool buildReport();
 
  protected:
-   void registerVariables();
- protected: //My Function
-   void postPolygons();
-   std::string DoubleToString(double input);
-   double Distance(double current_x, double current_y, double destination_x, double destination_y);
-   void KeepHeading();
-   void SetPoint();
-/*
-   void KeepHeading();
-   void CalculateError(Data &block, double desired_angle);
-   void OutputThruster(Data block, double thrust, double speed);
-   void SetPoint();
-   double Speed(Data &block);
-   void CheckMode(Data &block);
-   double relAng(double xa, double ya, double xb, double yb);
-   double angle360(double degval);
-   double radToDegrees(double radval);
+  void registerVariables();
 
+ protected: // My function
+  double  Distance(double, double, double, double);
+  void    CheckMode(const Mode);
+  double  CheckSpeed(double);
+  string  DoubleToString(double);
+
+  //10.21
+  void    ShowCompassHeading();
+  void    PostPolygons(string mode = "");
+  bool    Filter();
+
+ protected: // Mail Callbacks
+#if 0 // Keep this as an example for callbacks
+  bool onMessageFoo(CMOOSMsg&);
+#endif
 
  private: // Configuration variables
-   double m_desired_heading;
-   double m_kp;
-   double m_ki;
-   double m_kd;
-   double m_tolerance_radius;
+  std::string m_switch_mode;
+  double m_previous_time;
+  double m_previous_error;
+  double m_steady_error;
+  double m_kp;
+  double m_ki;
+  double m_kd;
+  double m_upper_speed;
+  double m_lower_speed;
 
  private: // State variables
-   double m_nav_heading;
-   double m_osx;
-   double m_osy;
-   double m_desired_x;
-   double m_desired_y;
-   //double m_previous_time;
-   //double m_previous_error;
-   //double m_steady_error;
-   std::string m_switch_mode;
-   double m_arrival_radius;
-   int m_upper_speed;
-   int m_lower_speed;   
-   bool m_active;
-*/
- private:
-   double m_nav_heading;
-   double m_osx;
-   double m_osy;
-   bool   m_active;
-   double m_desired_x;
-   double m_desired_y;
-   double m_desired_heading;
-   double m_tolerance_radius;
-   double m_arrival_radius;
-   bool m_keep_heading;
+  double m_nav_heading;
+  double m_osx;
+  double m_osy;
+  double m_desired_x;
+  double m_desired_y;
+  double m_desired_heading;
+  bool   m_active;
+  bool   m_keep_heading;
+  double m_arrival_radius;
+  double m_tolerance_radius; 
+  double m_distance;  //for report
+  double m_gps_heading; //for report
+  Mode   mode;
+
+  // 10.21experiment feature
+  double m_pre_heading;
 };
 
-#endif 
+#endif

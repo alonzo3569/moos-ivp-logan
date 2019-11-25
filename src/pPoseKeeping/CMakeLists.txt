@@ -1,7 +1,8 @@
-#--------------------------------------------------------
-# The CMakeLists.txt for:                       pPoseKeeping
-# Author(s):                              Logan
-#--------------------------------------------------------
+#===========================================================================
+# FILE:  CMakeLists.txt for pPoseKeeping
+# DATE:  2019/11/15
+# NAME:  Logan
+#===========================================================================
 
 SET(SRC
   PoseKeeping.cpp
@@ -13,10 +14,11 @@ SET(SRC
 ADD_EXECUTABLE(pPoseKeeping ${SRC})
 
 TARGET_LINK_LIBRARIES(pPoseKeeping
-   ${MOOS_LIBRARIES}
-   apputil
-   mbutil
-   m
-   geometry
-   pthread)
+  ${MOOS_LIBRARIES}
+  mbutil
+  apputil
+  m
+  pthread
+  geometry
+)
 

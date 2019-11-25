@@ -1,21 +1,21 @@
 /************************************************************/
 /*    NAME: Logan                                           */
 /*    ORGN: MIT                                             */
-/*    FILE: PoseKeeping.cpp                                 */
-/*    DATE:                                                 */
+/*    FILE: PoseKeeping.cpp                                */
+/*    DATE: 2019/11/15                                      */
 /************************************************************/
 
 #include <iterator>
 #include "MBUtils.h"
 #include "ACTable.h"
-#include "AngleUtils.h"
 #include "PoseKeeping.h"
-#include "ColorPack.cpp"
-#include <memory>
 
-#ifndef M_PI
-#define M_PI 3.1415926
-#endif
+//logan
+#include "AngleUtils.h"
+#include "ColorPack.cpp"
+//10.21
+#include "XYVector.h"
+#include "Mode.cpp"
 
 using namespace std;
 
@@ -24,35 +24,31 @@ using namespace std;
 
 PoseKeeping::PoseKeeping()
 {
-	m_nav_heading = 0;
-	m_osx = 0;
-	m_osy = 0;
-	m_active = false;
-	//Mode::setpretime(MOOSTime());
-	m_desired_x = 0;
-	m_desired_y = 0;
-	m_desired_heading = 0;
-	m_tolerance_radius = 0;
-	m_arrival_radius = 1;
-	m_keep_heading = false;
-/*
-	//m_kp = 0;
-	//m_ki = 0;
-	//m_kd = 0;
-	//m_previous_time = MOOSTime();
-	//m_previous_error = 0;
-	//m_steady_error = 0;
-	//m_switch_mode = '\0';
-	m_upper_speed = 100;
-	m_lower_speed = 10;
-*/
-}
+  m_previous_time = 0;
+  m_previous_error = 0;
+  m_steady_error = 0;
+  m_switch_mode = "NULL";
+  m_kp = 0;
+  m_ki = 0;
+  m_kd = 0;
+  m_upper_speed = 100;
+  m_lower_speed = 10;
 
-//---------------------------------------------------------
-// Destructor
+  m_nav_heading = 0;
+  m_osx = 0;
+  m_osy = 0;
+  m_desired_x = 0;
+  m_desired_y = 0;
+  m_desired_heading = 0;
+  m_active = false;
+  m_keep_heading = false;
+  m_arrival_radius = 1;
+  m_tolerance_radius = 0;
+  m_distance = 0; //for report
+  m_gps_heading = 0; // for report
 
-PoseKeeping::~PoseKeeping()
-{
+  //10.21experiment feature
+  m_pre_heading = -1;
 }
 
 //---------------------------------------------------------
@@ -82,8 +78,7 @@ bool PoseKeeping::OnNewMail(MOOSMSG_LIST &NewMail)
      if(key == "FOO") 
        cout << "great!";
 
-
-     else if(key == "NAV_HEADING")
+     else if(key == "NAV_HEADING") //CPNVG
      {
 	m_nav_heading = dval; 
      }
@@ -101,21 +96,26 @@ bool PoseKeeping::OnNewMail(MOOSMSG_LIST &NewMail)
 	if(sval == "true")
 	{
 		m_active = true; 
-		Mode::setpretime(MOOSTime());
-		postPolygons();
+		m_previous_time = MOOSTime();
 	}
 	else
 	{
 		m_active = false;
-		postPolygons();
+		PostPolygons();
+		ShowCompassHeading();
 	}
+     }
+
+     else if(key == "NAV_HEADING") //for report
+     {
+	m_gps_heading = dval; 
      }
 
      else if(key != "APPCAST_REQ") // handled by AppCastingMOOSApp
        reportRunWarning("Unhandled Mail: " + key);
    }
-	
-   return(true);
+
+  return UpdateMOOSVariables(NewMail);  // Automatically updates registered MOOS Vars
 }
 
 //---------------------------------------------------------
@@ -123,8 +123,37 @@ bool PoseKeeping::OnNewMail(MOOSMSG_LIST &NewMail)
 
 bool PoseKeeping::OnConnectToServer()
 {
-   registerVariables();
-   return(true);
+#if 0 // Keep this for messages that do not require a callback but just a simple read
+  AddMOOSVariable("bar_msg", "BAR_IN", "BAR_OUT", 0);
+  // incoming BAR_IN is automatically updated thru UpdateMOOSVariables();
+  // to get the latest value of BAR_OUT, call :
+  // double d = GetMOOSVar("bar_msg")->GetDoubleVal(); // if value is double
+  // string s = GetMOOSVar("bar_msg")->GetStringVal(); // if value is string
+#endif
+
+#if 0 // Keep this as an example for callbacks
+  AddMOOSVariable("foo_msg", "FOO_IN", "FOO_OUT", 0); // foo_msg is a local name
+  AddActiveQueue("foo_callback", this, &PoseKeeping::onMessageFoo);
+  AddMessageRouteToActiveQueue("foo_callback", "FOO_IN");
+#endif
+
+  registerVariables();
+  return(true);
+}
+
+//---------------------------------------------------------
+// Procedure: registerVariables
+
+void PoseKeeping::registerVariables()
+{
+  AppCastingMOOSApp::RegisterVariables();
+     Register("NAV_HEADING_CPNVG", 0); //CPNVG
+     Register("NAV_X", 0);
+     Register("NAV_Y", 0);
+     Register("THRUST_MODE_DIFFERENTIAL",0 );
+     Register("NAV_HEADING", 0); //for report
+
+  RegisterMOOSVariables();
 }
 
 //---------------------------------------------------------
@@ -137,74 +166,78 @@ bool PoseKeeping::Iterate()
 
   // Wait until active
   if(!m_active){
-    return(false);}
+    PublishFreshMOOSVariables();
+    AppCastingMOOSApp::PostReport();
+    return(true);}
 
+  // Show Compass Heading when active
+  ShowCompassHeading();
 
-// Behavior
-  //shared_ptr<Mode> p;
-  double distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
-  // If vehicle reach destination, KeepHeading mode On
-  if(distance < m_arrival_radius){
+  // Filter: CheckCompassHeading
+  bool result = Filter();
+  if(!result){
+    PublishFreshMOOSVariables();
+    AppCastingMOOSApp::PostReport();
+    return(true);}
+
+  // Calculate Params for deciding mode
+  m_distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
+  double keepheading_error = m_desired_heading - m_nav_heading;
+  double setpoint_error = relAng(m_osx, m_osy, m_desired_x, m_desired_y) - m_nav_heading;
+
+  // Behavior
+  if(m_distance < m_arrival_radius){
     m_keep_heading = true;}
   // If vehicle outside KeepHeading region, KeepHeading mode Off (will become SetPoint mode)
-  if(distance > m_tolerance_radius){
+  if(m_distance > m_tolerance_radius){
     m_keep_heading = false;}
 
-  Notify("KEEP_HEADING",m_keep_heading);
+  // Decide Mode 
+  if(m_keep_heading)
+   mode.setup(keepheading_error, "Keepheading");
+  else if(((setpoint_error < 270 && setpoint_error > 90) || (setpoint_error < -90 && setpoint_error > -270)) && m_distance < m_tolerance_radius+10)
+   mode.setup(setpoint_error, "Backward");
+  else
+   mode.setup(setpoint_error, "Forward");
 
-  if(m_keep_heading){
-    KeepHeading();
- }
-/*    cout << "con" << endl;
-    p -> CalculateError();
-    cout << "cal" << endl;
-    //cout << *p << endl;
-    p -> CheckMode();
-    cout << "check" << endl;
-    //cout << *p << endl;
-    p -> SetParams();
-    cout << "sParams" << endl;
-    p -> ThrustSpeed();
-    cout << "TS" << endl;
-    p -> Output();
-    cout << "output" << endl;
-    p -> SaveParams();
-    cout << "Save" << endl;
-    //cout << *p;
-    Notify("DESIRED_THRUST_L", p->getthrustl());
-    Notify("DESIRED_THRUST_R", p->getthrustr());
-*/
-  else{
-    SetPoint();
-}
+  // Show PoseKeeping region
+  PostPolygons(mode.getmode());
 
-/*
-    p -> CalculateError();
-    //cout << *p << endl;
-    p -> CheckMode();
-    //cout << *p << endl;
-    p -> SetParams();
-    p -> ThrustSpeed();
-    p -> Output();
-    p -> SaveParams();
-    //cout << *p;
-    Notify("DESIRED_THRUST_L", p->getthrustl());
-    Notify("DESIRED_THRUST_R", p->getthrustr()); 
+  //Calculate error for PID
+  mode.CalculateError();
 
-    Notify("M_CURR_HEADING",p->getheading());
-    Notify("M_CURR_ERROR",p->geterror());
-    Notify("M_CURR_DISTANCE",p->getdistance());
-    Notify("M_MODE",p->getmode());
-    Notify("M_THRUST",p->getthrust());
-    Notify("M_THRUST_R",p->getthrustr());
-    Notify("M_THRUST_L",p->getthrustl());
-    Notify("M_SPEED",p->getspeed());
-    Notify("M_KP",p->Mode::getkp());
-    Notify("M_KI",p->Mode::getki());
-    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
-    Notify("M_STEADY_ERROR",p->getsteadyerror());
-    Notify("M_DELTA_TIME",p->getdeltatime());
-*/
+  // Check if mode change, reset PID params
+  CheckMode(mode);
+
+  // Params for PID
+  double curr_time = MOOSTime();
+  double delta_time = curr_time - m_previous_time;
+  m_steady_error = m_steady_error + mode.geterror()*delta_time;
+
+  // Calculate speed and check speed value
+  double thrust = m_kp*(mode.geterror()) + m_kd*((mode.geterror() - m_previous_error)/delta_time) + m_ki*m_steady_error;
+  double speed = m_kp*m_distance;
+  speed = CheckSpeed(speed);
+
+  // Calculate thrust left & right
+  mode.Output(thrust, speed);
+
+  // Check thrust value
+  mode.CheckValue();
+
+  // Notify
+  Notify("DESIRED_THRUST_L", mode.getthrustl());
+  Notify("DESIRED_THRUST_R", mode.getthrustr());
+
+  // Save PID params
+  m_previous_error = mode.geterror();
+  m_previous_time = curr_time;
+
+  // Filter: Save m_nav_heading to m_pre_heading
+  m_pre_heading = m_nav_heading; 
+
+  PublishFreshMOOSVariables();
+
   AppCastingMOOSApp::PostReport();
   return(true);
 }
@@ -221,321 +254,168 @@ bool PoseKeeping::OnStartUp()
   m_MissionReader.EnableVerbatimQuoting(false);
   if(!m_MissionReader.GetConfiguration(GetAppName(), sParams))
     reportConfigWarning("No config block found for " + GetAppName());
+  else {
+    STRING_LIST::iterator p;
+    for(p=sParams.begin(); p!=sParams.end(); p++) {
+      string orig  = *p;
+      string line  = *p;
+      string param = toupper(biteStringX(line, '='));
+      string value = line;
 
-  STRING_LIST::iterator p;
-  for(p=sParams.begin(); p!=sParams.end(); p++) {
-    string orig  = *p;
-    string line  = *p;
-    string param = tolower(biteStringX(line, '='));
-    string value = line;
+      bool handled = false;
+      if(param == "FOO") {
+        handled = true;
+      }
+      else if(param == "BAR") {
+        handled = true;
+      }
+      // logan
+      else if(param == "POSITION") {
+        value = stripQuotes(value);
+        string x = biteString(value, ',');
+        string y = value;
+        m_desired_x = atof(x.c_str());
+        m_desired_y = atof(y.c_str());
+        handled = true;
+      }
 
-    bool handled = false;
-    if(param == "foo") {
-      handled = true;
-    }
-    else if(param == "bar") {
-      handled = true;
-    }
-///*
-    else if(param == "position") {
-      value = stripQuotes(value);
-      string x = biteString(value, ',');
-      string y = value;
-      m_desired_x = atof(x.c_str());
-      m_desired_y = atof(y.c_str());
-      handled = true;
-    }
+      else if(param == "HEADING") {
+        m_desired_heading = atof(value.c_str());
+        handled = true;
+      }
 
-    else if(param == "heading") {
-      m_desired_heading = atof(value.c_str());
-      handled = true;
-    }
+      else if(param == "KP") {
+        m_kp = atof(value.c_str());
+        handled = true;
+      }
 
-    else if(param == "kp") {
-      Mode::setkp(atof(value.c_str()));
-      handled = true;
-    }
+      else if(param == "KI") {
+        m_ki = atof(value.c_str());
+        handled = true;
+      }
 
-    else if(param == "ki") {
-      Mode::setki(atof(value.c_str()));
-      handled = true;
-    }
+      else if(param == "KD") {
+        m_kd = atof(value.c_str());
+        handled = true;
+      }
 
-    else if(param == "kd") {
-      Mode::setkd(atof(value.c_str()));;
-      handled = true;
+      else if(param == "TOLERANCE_RADIUS") {
+        m_tolerance_radius = atof(value.c_str());
+        handled = true;
+      }
+      if(!handled)
+        reportUnhandledConfigWarning(orig);
     }
-
-    else if(param == "tolerance_radius") {
-      m_tolerance_radius = atof(value.c_str());
-      handled = true;
-    }
-//*/
-    if(!handled)
-      reportUnhandledConfigWarning(orig);
 
   }
-  
-  registerVariables();	
+
+  registerVariables();
   return(true);
 }
 
-//---------------------------------------------------------
-// Procedure: registerVariables
+#if 0
+//------------------------------------------------------------
+// Procedure: onMessageFoo() callback
 
-void PoseKeeping::registerVariables()
+bool PoseKeeping:onMessageFoo(CMOOSMsg& foo)
 {
-  AppCastingMOOSApp::RegisterVariables();
-  // Register("FOOBAR", 0);
-     Register("NAV_HEADING", 0);
-     Register("NAV_X", 0);
-     Register("NAV_Y", 0);
-     Register("THRUST_MODE_DIFFERENTIAL",0 );
-}
+  // do something with foo
 
+  // update outgoing message (FOO_OUT in this case)
+  // SetMOOSVar("foo_msg", new_value, m_curr_time);
+
+  return(true);
+}
+#endif
 
 //------------------------------------------------------------
 // Procedure: buildReport()
+//      Note: A virtual function of the AppCastingMOOSApp superclass, 
+//            conditionally invoked if either a terminal or appcast 
+//            report is needed.
+//
+//    Desired Pose & Heading            Current Pose & Heading
+//  ----------------- ---------         -------- --------------
+//           Heading: 180                  Mode: KeepHeading
+//             (X,Y): 0,0                 (X,Y): -4.93,-96.05
+//  Tolerance radius: 5.0           IMU_Heading: 134.8   
+//                                     Distance: 50.6   
+//                                   Thrust_lft: 20
+//                                   Thrust_rgt: -60
+//
+//
+//
+//  Compare GPS & IMU Heading                   Thrust left & right
+//  --------------------------------------     ------------------------
+//        GPS Heading(NAV_HEADING): 135.7       DESIRED_THRUST_L: 20
+//  IMU Heading(NAV_HEADING_CPNVG): 150.6       DESIRED_THRUST_R:-60
+//
+// DESIRED_THRUST_R, DESIRED_THRUST_L, THRUST_MODE_DIFFERENTIAL, DISTANCE, CURR_MODE, SPEED, THRUST, POSITION, DESIRED_HEADING, NAV_HEADING, NAV_HEADING_CPNVG
 
-bool PoseKeeping::buildReport() 
+bool PoseKeeping::buildReport()
 {
-  m_msgs << "============================================" << endl;
-  m_msgs << "File:                                       " << endl;
-  m_msgs << "============================================" << endl;
-
-  ACTable actab(4);
-  actab << "Alpha | Bravo | Charlie | Delta";
+  m_msgs << endl;
+  ACTable actab(4,1);
+  actab << "Desired Pose & Heading |  | Current Pose & Heading| ";
   actab.addHeaderLines();
-  actab << "one" << "two" << "three" << "four";
-  m_msgs << actab.getFormattedString();
+  actab.setColumnPadStr(1, "   "); // Pad w/ extra blanks between cols 1&2
+  actab.setColumnPadStr(3, "   "); // Pad w/ extra blanks between cols 3&4
+  actab.setColumnJustify(0, "left");
+  actab.setColumnJustify(2, "left");
+  actab.setColumnJustify(4, "left");
 
+  //Desired Pose & Heading | Current Pose & Heading
+  actab << "Heading:" << DoubleToString(m_desired_heading);
+  actab << "Mode:" << mode.getmode();
+  actab << "(X,Y):" << DoubleToString(m_desired_x) + "," + DoubleToString(m_desired_y);
+  actab << "(X,Y):" << DoubleToString(m_osx) + "," + DoubleToString(m_osy);
+  actab << "Tolerance Radius:" << DoubleToString(m_tolerance_radius);
+  actab << "IMU Heading:" << DoubleToString(m_nav_heading);
+  actab << "" << "" << "Distance:" << DoubleToString(m_distance);
+  actab << "" << "" << "Thrust_lft:" << DoubleToString(mode.getthrustl());
+  actab << "" << "" << "Thrust_rgt:" << DoubleToString(mode.getthrustr());
+  m_msgs << actab.getFormattedString() << endl;
+
+  //Compare GPS & IMU Heading
+  m_msgs << endl;
+  m_msgs << endl;
+  actab = ACTable(2,1);
+  actab << "Compare GPS & IMU Heading |  ";
+  actab.addHeaderLines();
+  actab.setColumnPadStr(1, "   "); // Pad w/ extra blanks between cols 1&2
+  actab.setColumnJustify(0, "left");
+  actab.setColumnJustify(2, "left");
+
+  actab << "GPS Heading(NAV_HEADING):" << DoubleToString(m_gps_heading); //subscribe nav_heading!
+  actab << "IMU Heading(NAV_HEADING_CPNVG):" << DoubleToString(m_nav_heading);
+  m_msgs << actab.getFormattedString() << endl;
+
+  //Compare Thrust left & right
+  m_msgs << endl;
+  m_msgs << endl;
+  actab = ACTable(2,1);
+  actab << " Thrust left & right |  ";
+  actab.addHeaderLines();
+  actab.setColumnPadStr(1, "   "); // Pad w/ extra blanks between cols 1&2
+  actab.setColumnJustify(0, "left");
+  actab.setColumnJustify(2, "left");
+
+  actab << "DESIRED_THRUST_L:" << DoubleToString(mode.getthrustl());
+  actab << "DESIRED_THRUST_R:" << DoubleToString(mode.getthrustr());
+  m_msgs << actab.getFormattedString() << endl;
+
+/* For debugging
+  m_msgs <<  " m_curr_error: " << mode.geterror() << endl;
+  m_msgs <<  "       m_mode: " << mode.getmode() << endl;
+  m_msgs <<  "   m_thrust_l: "  << mode.getthrustl() << endl;
+  m_msgs <<  "   m_thrust_r: "  << mode.getthrustr() << endl;
+  m_msgs << "============================================ \n";
+  m_msgs <<  "m_switch_mode   : "  << m_switch_mode << endl;
+  m_msgs <<  "m_previous_time : "  << m_previous_time << endl;
+  m_msgs <<  "m_previous_error: "  << m_previous_error << endl;
+  m_msgs <<  "m_steady_error  : "  << m_steady_error << endl;
+*/
   return(true);
-}
-/*
-//------------------------------------------------------------
-// Procedure: KeepHeeding
-// Procedure: Keep Vehicle's heading while vehicle is inside the KeepHeading region
-
-void PoseKeeping::KeepHeading() 
-{
-	//Constructor
-	Data block(m_nav_heading);
-
-	//HEADING CONTROL PID
-	//Calculate error for PID(difference between current heading and desired heading)
-	CalculateError(block, m_desired_heading);
-
-	//Check mode, if the mode changed, reset PID variables
-	CheckMode(block);
-
-	//Get time difference for PID
-	double current_time = MOOSTime();
-	double delta_time = current_time - m_previous_time;
-	
-	//Calculate steady state error
-	m_steady_error = m_steady_error + block.m_curr_error*delta_time;
-
-	//Calculate thrust
-	double thrust = m_kp*block.m_curr_error + m_kd*(block.m_curr_error - m_previous_error) + m_ki*m_steady_error;
-
-	//Output Thruster
-	OutputThruster(block, thrust, 0);
-
-	//Save previous data
-	m_previous_error = block.m_curr_error;
-	m_previous_time = current_time; 
-	
-}
-//------------------------------------------------------------
-// Procedure: CalculateError
-//   Purpose: Transform angle to the graph below and calculate error 
-//
-//   KeepHeading mode:              SetPoint mode:
-//
-//                                       foward         foward
-//         left      0      right         left     0     right
-//                   |                             |
-//                   |                    -90      |      90
-//         -90 ----- A ----- 90              ----- A -----       
-//                   |                    -90      |      90           
-//                   |                             |               
-//              -180   180                left     0      right    
-//                                      backward        backward   
-
-void PoseKeeping::CalculateError(Data &block, double desired_angle)
-{
-
-	double error = desired_angle - block.m_curr_heading;
-	if (error < -180)
-	{
-		error += 360;
-	}
-	else if (error > 180)
-	{
-		error -= 360;
-	}
-	block.m_curr_error = error;
-
-	//Quit if this is keep heading mode
-	if(block.m_mode == "KeepHeading")
-	   return;
-
-	//Keep going if this is set_point mode
-	if(error < 180 && error > 90 && block.m_curr_distance < m_tolerance_radius+10)
-	{
-		error = -error+180;
-		block.m_mode = "Backward";
-	}
-	else if(error < -90 && error > -180 && block.m_curr_distance < m_tolerance_radius+10)
-	{
-		error = -error-180;
-		block.m_mode = "Backward";
-	}
-	else
-	{
-		block.m_mode = "Foward";
-	}
-
-	//This is set point mode
-	block.m_curr_error = error;
-}
-//------------------------------------------------------------
-// Procedure: OutputThruster
-//   Purpose: Notify thruster to MOOSDB based on different mode 
-
-void PoseKeeping::OutputThruster(Data block, double thrust, double speed)
-{
-
-	if (block.m_mode == "KeepHeading")
-	{
-		Notify("DESIRED_THRUST_R",-thrust);
-		Notify("DESIRED_THRUST_L",thrust);
-	}
-	else if (block.m_mode == "Foward")
-	{
-		Notify("DESIRED_THRUST_R",speed - thrust);
-		Notify("DESIRED_THRUST_L",speed + thrust);
-	}
-	else if (block.m_mode == "Backward")
-	{
-		Notify("DESIRED_THRUST_R",-speed + thrust);
-		Notify("DESIRED_THRUST_L",-speed - thrust);
-	}
-
-}
-//------------------------------------------------------------
-// Procedure: SetPoint
-//   Purpose: Go to destination
-
-void PoseKeeping::SetPoint() 
-{
-	//Constructor
-	Data block(m_nav_heading,Distance(m_osx, m_osy, m_desired_x, m_desired_y));
-
-	//HEADING CONTROL PID
-	//Calculate azimuth of destination
-	double rel_ang_to_wpt = relAng(m_osx, m_osy, m_desired_x, m_desired_y);
-
-	//Calculate error for PID
-	CalculateError(block, rel_ang_to_wpt);
-
-	//Check mode, if the mode changed, reset PID variables
-	CheckMode(block);
-
-	//Get time difference for PID
-	double current_time = MOOSTime();
-	double delta_time = current_time - m_previous_time;
-
-	//Calculate steady state error
-	m_steady_error = m_steady_error + block.m_curr_error*delta_time;
-
-	//Calculate thrust
-	double thrust = m_kp*block.m_curr_error + m_kd*(block.m_curr_error - m_previous_error)/delta_time + m_ki*m_steady_error;
-
-	//SPEED CONTROL
-	double speed = Speed(block);
-
-	//Output Thruster
-	OutputThruster(block, thrust, speed);
-
-	//Save previous data
-	m_previous_error = block.m_curr_error;
-	m_previous_time = current_time; 
-}
-//-------------------------------------------------------------
-// Procedure: relAng
-//   Purpose: Calculate angle between destination and vehicle (from lib-geometry) 
-
-double PoseKeeping::relAng(double xa, double ya, double xb, double yb)
-{ 
-  if((xa==xb)&&(ya==yb))
-    return(0);
-
-  double w   = 0;
-  double sop = 0;
-
-  if(xa < xb) {
-    if(ya==yb)  
-      return(90.0);
-    else
-      w = 90.0;
-  }
-  else if(xa > xb) {
-    if(ya==yb)  
-      return(270.0);
-    else
-      w = 270.0;
-  }
-
-  if(ya < yb) {
-    if(xa == xb) 
-      return(0.0);
-    if(xb > xa) 
-      sop = -1.0;
-    else 
-      sop =  1.0;
-  }
-  else if(yb < ya) {
-    if(xa == xb) 
-      return(180);
-    if(xb >  xa) 
-      sop =  1.0;
-    else 
-      sop = -1.0;
-  }
-
-  double ydiff = yb-ya;
-  double xdiff = xb-xa;
-  if(ydiff<0) ydiff = ydiff * -1.0;
-  if(xdiff<0) xdiff = xdiff * -1.0;
-
-  double avalPI = atan(ydiff/xdiff);
-  double avalDG = radToDegrees(avalPI);
-  double retVal = (avalDG * sop) + w;
-
-  retVal = angle360(retVal);
-
-  return(retVal);
-}
-//---------------------------------------------------------------
-// Procedure: angle360
-//   Purpose: Convert angle to be strictly in the rang [0, 360). (from lib-geometry)
-
-double PoseKeeping::angle360(double degval)
-{
-  while(degval >= 360.0)
-    degval -= 360.0;
-  while(degval < 0.0)
-    degval += 360.0;
-  return(degval);
-}
-//---------------------------------------------------------------
-// Procedure: radToDegrees
-//   Purpose: Change rad to degree (from lib-geometry)
-
-double PoseKeeping::radToDegrees(double radval)
-{
-  return((radval / M_PI) * 180);
 }
 
 //---------------------------------------------------------------
@@ -547,14 +427,28 @@ double PoseKeeping::Distance(double current_x, double current_y, double destinat
   double distance = sqrt(pow(current_x-destination_x,2)+pow(current_y-destination_y,2));
   return(distance);
 }
+
 //---------------------------------------------------------------
-// Procedure: Speed
-//   Purpose: Decide Upper and lower limit of the speed  
+// Procedure: CheckMode
+//   Purpose: If the mode changed, reset PID variables
 
-double PoseKeeping::Speed(Data &block)
+void PoseKeeping::CheckMode(const Mode mode)
 {
-	double speed = m_kp*block.m_curr_distance;
+	if(mode.getmode() != m_switch_mode)
+	{
+		m_previous_error = 0;
+		m_steady_error = 0;
+		m_switch_mode = mode.getmode();
+	}
+	return;
+}
 
+//---------------------------------------------------------------
+// Procedure: CheckSpeed
+//   Purpose: Decide Upper and lower limit of the speed
+
+double PoseKeeping::CheckSpeed(double speed)
+{
 	if(speed > m_upper_speed)
 	{
 		speed = m_upper_speed;
@@ -565,210 +459,82 @@ double PoseKeeping::Speed(Data &block)
 	}
 	return(speed);	
 }
-//---------------------------------------------------------------
-// Procedure: CheckMode
-//   Purpose: If the mode changed, reset PID variables
 
-void PoseKeeping::CheckMode(Data &block)
+//------------------------------------------------------------
+// Procedure: DoubleToString
+//   Purpose: Change double to string
+string PoseKeeping::DoubleToString(double input)
 {
-	if(block.m_mode != m_switch_mode)
+    stringstream msg;
+    string output;
+    msg << input;
+    msg >> output;
+    return(output);
+}
+
+//------------------------------------------------------------
+// Procedure: ShowCompassHeading
+//   Purpose: Using VIEW_VECTOR to show compass heading on pMarineViewer
+
+void PoseKeeping::ShowCompassHeading()
+{
+	XYVector vector(m_osx, m_osy, 5, m_nav_heading);
+	vector.set_active(m_active);
+	vector.set_label("hdg");
+	//vector.set_color("fill", "orange");
+	vector.set_vertex_size(5);
+	vector.set_edge_size(5);
+	vector.set_edge_color("green");
+	vector.setHeadSize(2);
+	string str = vector.get_spec();
+	m_Comms.Notify("VIEW_VECTOR", str);
+}
+
+//------------------------------------------------------------
+// Procedure: PostPolygons
+//   Purpose: Post KeepHeading region on pMarineViewer
+
+void PoseKeeping::PostPolygons(string mode)
+{
+	string spec = "format=radial,label=destination,vertex_color=blue,fill_color=grey90,vertex_size=0,edge_size=1,pts=24,snap=1";
+	spec += ",x=" + DoubleToString(m_desired_x);
+	spec += ",y=" + DoubleToString(m_desired_y);
+	spec += ",radius=" + DoubleToString(m_tolerance_radius);
+
+	if(!m_active)
 	{
-		m_previous_time = MOOSTime();
-		m_previous_error = 0;
-		m_steady_error = 0;
-		m_switch_mode = block.m_mode;
-		Notify("MODE",m_switch_mode);
+		spec += ",active=false";
+		Notify("VIEW_POLYGON",spec);
+		return;
 	}
-}
 
-//------------------------------------------------------------
-// Procedure: postPolygons
-//   Purpose: Post KeepHeading region on pMarineViewer
-
-void PoseKeeping::postPolygons()
-{
-    string spec = "format=radial,label=destination_point,edge_color=blue,vertex_color=blue,fill_color=grey90,vertex_size=0,edge_size=1";
-    spec += ",x=" + DoubleToString(m_desired_x);
-    spec += ",y=" + DoubleToString(m_desired_y);
-    spec += ",radius=" + DoubleToString(m_tolerance_radius);
-    spec += ",pts=24, snap=1";
-    if(m_active)
-    {
 	spec += ",active=true";
-    }
-    else
-    {
-	spec += ",active=false";
-    }
-    Notify("VIEW_POLYGON", spec);
+	if(mode == "Keepheading")
+	{
+		
+		spec += ",edge_color=blue";
+		Notify("VIEW_POLYGON",spec);
+		return;
+	}
+
+	spec += ",edge_color=red";
+	Notify("VIEW_POLYGON",spec);
 }
 
 //------------------------------------------------------------
-// Procedure: DoubleToString
-//   Purpose: Change double to string
-string PoseKeeping::DoubleToString(double input)
+// Procedure: Filter
+//   Purpose: Remove unreasonable heading provided by compass
+
+bool PoseKeeping::Filter()
 {
-    stringstream msg;
-    string output;
-    msg << input;
-    msg >> output;
-    return(output);
-}
-
-*/
-
-//------------------------------------------------------------
-// Procedure: postPolygons
-//   Purpose: Post KeepHeading region on pMarineViewer
-
-void PoseKeeping::postPolygons()
-{
-    string spec = "format=radial,label=destination_point,edge_color=blue,vertex_color=blue,fill_color=grey90,vertex_size=0,edge_size=1";
-    spec += ",x=" + DoubleToString(m_desired_x);
-    spec += ",y=" + DoubleToString(m_desired_y);
-    spec += ",radius=" + DoubleToString(m_tolerance_radius);
-    spec += ",pts=24, snap=1";
-    if(m_active)
-    {
-	spec += ",active=true";
-    }
-    else
-    {
-	spec += ",active=false";
-    }
-    Notify("VIEW_POLYGON", spec);
-}
-//------------------------------------------------------------
-// Procedure: DoubleToString
-//   Purpose: Change double to string
-string PoseKeeping::DoubleToString(double input)
-{
-    stringstream msg;
-    string output;
-    msg << input;
-    msg >> output;
-    return(output);
-}
-//---------------------------------------------------------------
-// Procedure: Distance
-//   Purpose: Calculate distance between vehicle and destination
-
-double PoseKeeping::Distance(double current_x, double current_y, double destination_x, double destination_y)
-{
-  double distance = sqrt(pow(current_x-destination_x,2)+pow(current_y-destination_y,2));
-  return(distance);
-}
-//------------------------------------------------------------
-// Procedure: KeepHeeding
-// Procedure: Keep Vehicle's heading while vehicle is inside the KeepHeading region
-
-void PoseKeeping::KeepHeading() 
-{
-  //cout << "keepheading" << endl;
-  double error = m_desired_heading - m_nav_heading;
-  shared_ptr<Mode> p(new Keepheading(m_nav_heading, error));
-    Notify("M_CURR_HEADING",p->getheading());
-    Notify("M_CURR_ERROR",p->geterror());
-    Notify("M_CURR_DISTANCE",p->getdistance());
-  //return ptr;
-    p -> CalculateError();
-    //cout << *p << endl;
-    p -> CheckMode();
-    //cout << *p << endl;
-    p -> SetParams();
-    p -> ThrustSpeed();
-    p -> Output();
-    p -> SaveParams();
-    //cout << *p;
-    Notify("DESIRED_THRUST_L", p->getthrustl());
-    Notify("DESIRED_THRUST_R", p->getthrustr()); 
-
-    Notify("M_MODE",p->getmode());
-    Notify("M_THRUST",p->getthrust());
-    Notify("M_THRUST_R",p->getthrustr());
-    Notify("M_THRUST_L",p->getthrustl());
-    Notify("M_SPEED",p->getspeed());
-    Notify("M_KP",p->Mode::getkp());
-    Notify("M_KI",p->Mode::getki());
-    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
-    Notify("M_STEADY_ERROR",p->getsteadyerror());
-    Notify("M_DELTA_TIME",p->getdeltatime());
-    Notify("M_PREVIOUS_TIME",p->getpretime());
-    Notify("M_SWITCH_MODE",p->getstaticmode());
-}
-
-//------------------------------------------------------------
-// Procedure: SetPoint
-//   Purpose: Go to destination
-void PoseKeeping::SetPoint() 
-{
-  //cout << "front" << endl;
-  double wpt_error = relAng(m_osx, m_osy, m_desired_x, m_desired_y) - m_nav_heading;
-  double distance = Distance(m_osx, m_osy, m_desired_x, m_desired_y);
-  if((wpt_error < 180 && wpt_error > 90 && distance < m_tolerance_radius+10) ||
-    (wpt_error < -90 && wpt_error > -180 && distance < m_tolerance_radius+10))
-  {
-	shared_ptr<Front> p(new Front(m_nav_heading, wpt_error, distance));
-    Notify("M_CURR_HEADING",p->getheading());
-    Notify("M_CURR_ERROR",p->geterror());
-    Notify("M_CURR_DISTANCE",p->getdistance());
-	//return ptr;
-    p -> CalculateError();
-    //cout << *p << endl;
-    p -> CheckMode();
-    //cout << *p << endl;
-    p -> SetParams();
-    p -> ThrustSpeed();
-    p -> Output();
-    p -> SaveParams();
-    //cout << *p;
-    Notify("DESIRED_THRUST_L", p->getthrustl());
-    Notify("DESIRED_THRUST_R", p->getthrustr()); 
-
-    Notify("M_MODE",p->getmode());
-    Notify("M_THRUST",p->getthrust());
-    Notify("M_THRUST_R",p->getthrustr());
-    Notify("M_THRUST_L",p->getthrustl());
-    Notify("M_SPEED",p->getspeed());
-    Notify("M_KP",p->Mode::getkp());
-    Notify("M_KI",p->Mode::getki());
-    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
-    Notify("M_STEADY_ERROR",p->getsteadyerror());
-    Notify("M_DELTA_TIME",p->getdeltatime());
-    Notify("M_PREVIOUS_TIME",p->getpretime());
-    Notify("M_SWITCH_MODE",p->getstaticmode());
-  }
+  if(m_pre_heading == -1){}
   else
   {
-	shared_ptr<Front> p(new Front(m_nav_heading, wpt_error, distance));
-	//return ptr;
-    Notify("M_CURR_HEADING",p->getheading());
-    Notify("M_CURR_ERROR",p->geterror());
-    Notify("M_CURR_DISTANCE",p->getdistance());
-    p -> CalculateError();
-    //cout << *p << endl;
-    p -> CheckMode();
-    //cout << *p << endl;
-    p -> SetParams();
-    p -> ThrustSpeed();
-    p -> Output();
-    p -> SaveParams();
-    //cout << *p;
-    Notify("DESIRED_THRUST_L", p->getthrustl());
-    Notify("DESIRED_THRUST_R", p->getthrustr()); 
-
-    Notify("M_MODE",p->getmode());
-    Notify("M_THRUST",p->getthrust());
-    Notify("M_THRUST_R",p->getthrustr());
-    Notify("M_THRUST_L",p->getthrustl());
-    Notify("M_SPEED",p->getspeed());
-    Notify("M_KP",p->Mode::getkp());
-    Notify("M_KI",p->Mode::getki());
-    Notify("M_PREVIOUS_ERROR",p->Mode::getpreerror());
-    Notify("M_STEADY_ERROR",p->getsteadyerror());
-    Notify("M_DELTA_TIME",p->getdeltatime());
-    Notify("M_PREVIOUS_TIME",p->getpretime());
-    Notify("M_SWITCH_MODE",p->getstaticmode());
+	if(abs(m_nav_heading - m_pre_heading) > 120 && abs(m_nav_heading - m_pre_heading) < 270) // from logfile data result 340 10.21expiment
+	{
+		return(false);
+	}
   }
+  return(true);
 }
 

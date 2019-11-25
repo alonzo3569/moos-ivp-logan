@@ -27,11 +27,12 @@ ProcessConfig = ANTLER
   Run = uFldNodeBroker     @ NewConsole = false
 #ifdef SIM
   Run = uSimMarine         @ NewConsole = false
+  Run = pPoseKeeping	   @ NewConsole = false
 #else
   Run = iM200              @ NewConsole = false
+  Run = pPoseKeepingX	   @ NewConsole = false
 #endif
   Run = uXMS		   @ NewConsole = false
-  Run = pPoseKeeping	   @ NewConsole = false
 }
 
 //------------------------------------------
@@ -166,6 +167,7 @@ ProcessConfig = uFldNodeBroker
 
 
   BRIDGE = src=VIEW_POLYGON
+  BRIDGE = src=VIEW_VECTOR
   BRIDGE = src=VIEW_POINT
   BRIDGE = src=VIEW_SEGLIST
   BRIDGE = src=VIEW_CIRCLE
@@ -189,7 +191,7 @@ ProcessConfig = uSimMarine
 
   prefix        = NAV
 
-  drift_x       = 0.3
+  //drift_x       = 0.3
   //drift_y       = 0.03
 
   turn_rate     = 40
@@ -226,13 +228,28 @@ ProcessConfig = uXMS
 {
   AppTick   = 4                                                 
   CommsTick = 4
-  var = DESIRED_THRUST_R, DESIRED_THRUST_L, THRUST_MODE_DIFFERENTIAL
+  var = DESIRED_THRUST_R, DESIRED_THRUST_L, THRUST_MODE_DIFFERENTIAL, DISTANCE, CURR_MODE, SPEED, THRUST, POSITION, DESIRED_HEADING, NAV_HEADING, NAV_HEADING_CPNVG
   history_var = DESIRED_THRUST_R
 }
 
 //------------------------------------------
 // pPoseKeeping config block
 ProcessConfig = pPoseKeeping
+{
+  AppTick   = 4                                                 
+  CommsTick = 4
+
+  position  = $(POS)
+  heading   = $(HEADING)
+  Kp        = 1.2
+  Kd        = 0.0
+  Ki        = 0.0
+  tolerance_radius = 5
+}
+
+//------------------------------------------
+// pPoseKeepingX config block
+ProcessConfig = pPoseKeepingX
 {
   AppTick   = 4                                                 
   CommsTick = 4

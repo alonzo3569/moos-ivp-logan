@@ -1,132 +1,144 @@
 #include"Mode.h"
 
-// initialize static member
-double Mode::m_previous_time = 0;
-double Mode::m_previous_error = 0;
-double Mode::m_steady_error = 0;
-string Mode::m_switch_mode = "NULL";
-double Mode::m_curr_time = 0;
-double Mode::m_delta_time = 0;
-double Mode::m_kp = 0;
-double Mode::m_ki = 0;
-double Mode::m_kd = 0;
-
-/*
-ostream& operator<<(ostream& os, Mode& M){
-    os << "Keepheading class" << endl
-       << "=========================" << endl 
-       << "m_curr_heading = "<< M.getheading() << endl
-       << "m_curr_error = " << M.geterror() << endl
-       << "m_curr_distance = " << M.getdistance() << endl
-       << "m_mode = " << M.getmode() << endl
-       << "Static Member:" << endl
-
-       << "m_previous_time = " << Mode::getpretime() << endl
-       << "m_previous_error = " << Mode::getpreerror() << endl
-       << "m_steady_error = " << Mode::getsteadyerror() << endl
-       << "m_switch_mode = " << Mode::getstaticmode() << endl;
-
-       << "m_previous_time = " << Mode::m_previous_time << endl
-       << "m_previous_error = " << Mode::m_previous_error << endl
-       << "m_steady_error = " << Mode::m_steady_error << endl
-       << "m_switch_mode = " << Mode::m_switch_mode << endl
-       << "Output:" << endl
-       << "m_thrust = " << M.getthrust() << endl;
-
-    return os;
+//------------------------------------------------------------------------
+// Constructor
+Mode::Mode() 
+{
+    double m_curr_error = 0;
+    string m_mode;
+    double m_thrust_r = 0;
+    double m_thrust_l = 0;
 }
-*/
 
-void Keepheading::CalculateError(){
+//------------------------------------------------------------------------
+// Procedure: setup
+//   Purpose: setup mode object
+void Mode::setup(double error, string msg)
+{
+	m_curr_error = error;
+	m_mode = msg;
+}
 
-    double error = geterror();
+//------------------------------------------------------------------------
+// Procedure: CalculateError
+//   Purpose: Transform angle to the graph below and calculate error 
+//
+//   KeepHeading mode:              SetPoint mode:
+//
+//                                       forward        forward
+//         left      0      right         left     0     right
+//                   |                             |
+//                   |                    -90      |      90
+//         -90 ----- A ----- 90              ----- A -----       
+//                   |                    -90      |      90           
+//                   |                             |               
+//              -180   180                left     0      right    
+//                                      backward        backward   
 
-	if (error < -180)
+void Mode::CalculateError()
+{
+	if (m_curr_error < -180)
 	{
-		error += 360;
+		m_curr_error += 360;
 	}
-	else if (error > 180)
+	else if (m_curr_error > 180)
 	{
-		error -= 360;
+		m_curr_error -= 360;
 	}
-    seterror(error);
-
-   return;
-}
-
-void Mode::CheckMode(){
-
-    //if (getmode() != getstaticmode()){
-    if (getmode() != m_switch_mode){
-        m_previous_time = MOOSTime(); // MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();
-        m_previous_error = 0;
-        m_steady_error = 0;
-        m_switch_mode = getmode();
-        /*
-        setpretime(100);
-        setpreerror(0);
-        setsteadyerror(0);
-        setstaticmode(getmode());
-        */
-        // Notify("STATIC_MODE",getstaticmode());
-    }
-}
-
-void Mode::SetParams(){
-	//Get time difference for PID
-    m_curr_time = MOOSTime(); //MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();MOOSTime();
-    m_delta_time = m_curr_time - m_previous_time;
-   	//Calculate steady state error
-    m_steady_error = m_steady_error + m_curr_error*m_delta_time;
-}
-
-void Keepheading::ThrustSpeed(){
-    //Calculate thrust 
-    setthrust(Mode::getkp()*geterror() + getkd()*(geterror() - getpreerror())/getdeltatime() + getki()*getsteadyerror());
-}
-
-void Keepheading::Output(){
-	//Notify thrust to MOOSDB
-	setthrustr(-getthrust());
-	setthrustl( getthrust());
-}
-
-void Mode::SaveParams(){
-    //Saving pid params
-    m_previous_error = m_curr_error;
-    m_previous_time = m_curr_time;
-}
-
-void Front::CalculateError(){
+	if (m_mode != "Backward")
+	return;
 	
-	double error = geterror();
-	if (error < -180)
+	if(m_curr_error < 180 && m_curr_error > 90)
 	{
-		error += 360;
+		m_curr_error = -m_curr_error+180;
 	}
-	else if (error > 180)
+	else if(m_curr_error < -90 && m_curr_error > -180)
 	{
-		error -= 360;
+		m_curr_error = -m_curr_error-180;
 	}
-	seterror(error);
+
 }
 
-void Front::ThrustSpeed(){
-	setthrust(Mode::getkp()*geterror() + Mode::getkd()*(geterror() - Mode::getpreerror())/getdeltatime() + Mode::getki()*getsteadyerror());
-	double speed = Mode::getkp()*getdistance();
-	if(speed > 100) //m_upper_speed
+//------------------------------------------------------------------------
+// Procedure: Output
+//   Purpose: Set thrust lft & rgt based on different mode 
+
+void Mode::Output(double thrust, double speed)
+{
+	if (m_mode == "Keepheading")
 	{
-		speed = 100;
-	}	
-	if(speed < 10)//m_lower_speed
-	{
-		speed = 10;
+		//m_thrust_l =  thrust;
+		//m_thrust_r = -thrust;
+
+		if (thrust > 0)
+		{
+			/*if (thrust < m_front_thrust_limit)
+			{
+				m_thrust_l = m_front_thrust_limit;
+				m_thrust_r = -m_factor * m_front_thrust_limit;
+			}
+			else if (thrust >= m_front_thrust_limit && thrust <= 100.0/m_factor)
+			{
+				m_thrust_l = thrust;
+				m_thrust_r = -m_factor * thrust;
+			}
+			else if (thrust > 100.0/m_factor)
+			{
+				m_thrust_l = 100.0/m_factor;
+				m_thrust_r = -100;
+			}*/
+			m_thrust_l =  20;
+			m_thrust_r = -60;
+		}
+		else
+		{
+			/*if (abs(thrust) < m_front_thrust_limit)
+			{
+				m_thrust_l = -m_factor * m_front_thrust_limit;
+				m_thrust_r = m_front_thrust_limit;
+			}
+			else if (abs(thrust) >= m_front_thrust_limit && thrust <= 100.0/m_factor)
+			{
+				m_thrust_l = thrust;
+				m_thrust_r = -m_factor *thrust;
+			}
+			else if (abs(thrust) > 100.0/m_factor)
+			{
+				m_thrust_l = -100;
+				m_thrust_r = 100.0/m_factor;
+			}*/
+			m_thrust_r =  20;
+			m_thrust_l = -60;
+		}
+
 	}
-	setspeed(speed);
+	else if (m_mode == "Forward")
+	{
+		m_thrust_l = speed + thrust + 10; // forward shift
+		m_thrust_r = speed - thrust + 10;
+	}
+	else
+	{
+		m_thrust_l = -speed - thrust - 33; // backward shift
+		m_thrust_r = -speed + thrust - 33;
+	}
 }
 
-void Front::Output(){
-	setthrustr(getspeed() - getthrust());
-	setthrustl(getspeed() + getthrust());
+//------------------------------------------------------------------------
+// Procedure: CheckValue
+//   Purpose: Value between -33 to 17 is not acceptable for heron, change it to zero
+
+void Mode::CheckValue()
+{
+	if(m_thrust_r > m_back_thrust_limit && m_thrust_r < m_front_thrust_limit)
+	{
+		m_thrust_r = 0;
+	}
+
+	if(m_thrust_l > m_back_thrust_limit && m_thrust_l < m_front_thrust_limit)
+	{
+		m_thrust_l = 0;
+	}
 }
+
 

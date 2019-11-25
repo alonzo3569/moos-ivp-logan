@@ -1,8 +1,8 @@
 /****************************************************************/
-/*   NAME: Logan                                             */
-/*   ORGN: MIT                                     */
-/*   FILE: PoseKeepingX_Info.cpp                               */
-/*   DATE: 2019/11/15                                        */
+/*   NAME: Logan                                                */
+/*   ORGN: MIT                                                  */
+/*   FILE: PoseKeepingX_Info.cpp                                */
+/*   DATE: 2019/11/15                                           */
 /****************************************************************/
 
 #include <cstdlib>
