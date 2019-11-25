@@ -163,7 +163,9 @@ ProcessConfig = pMarineViewer
   action  = MENU_KEY=deploy # DEPLOY = true # RETURN = false
   action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE=false
   action  = RETURN=true
-  action  = UPDATES_RETURN=speed=1.4
+  action+  = UPDATES_RETURN=speed=1.4
+  action  = DRIFT_VECTOR_ADD="0,0.2"
+  action  = DRIFT_VECTOR_ADD="180,0.2"
 }
 
 //------------------------------------------

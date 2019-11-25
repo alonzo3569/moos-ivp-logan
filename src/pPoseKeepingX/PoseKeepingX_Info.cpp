@@ -20,10 +20,13 @@ void showSynopsis()
 {
   blk("SYNOPSIS:                                                       ");
   blk("------------------------------------                            ");
-  blk("  The pPoseKeepingX application is used for               ");
-  blk("                                                                ");
-  blk("                                                                ");
-  blk("                                                                ");
+  blk("  The pPoseKeepingX application is used for holding Heron's     ");
+  blk("  position and heading as much as possible without using Helm.  ");
+  blk("  This is a capability suitable for multi-vehicle testing.      ");
+  blk("  With pPoseKeeping application, we can deploy N herons out to  ");
+  blk("  station-keeping points just off the dock, putting them into a ");
+  blk("  pose-keeping mode (Helm not active), deploying the mission    ");
+  blk("  which would halt the pose-keeping mode.                       ");
   blk("                                                                ");
 }
 
@@ -66,14 +69,19 @@ void showExampleConfigAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pPoseKeepingX Example MOOS Configuration                   ");
+  blu("pPoseKeepingX Example MOOS Configuration                        ");
   blu("=============================================================== ");
   blk("                                                                ");
-  blk("ProcessConfig = pPoseKeepingX                              ");
+  blk("ProcessConfig = pPoseKeepingX                                   ");
   blk("{                                                               ");
   blk("  AppTick   = 4                                                 ");
   blk("  CommsTick = 4                                                 ");
-  blk("                                                                ");
+  blk("  position  = 20,-15                                            ");
+  blk("  heading   = 180                                               ");
+  blk("  Kp        = 1.2                                               ");
+  blk("  Kd        = 0.0                                               ");
+  blk("  Ki        = 0.0                                               ");
+  blk("  tolerance_radius = 5                                          ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);
@@ -87,19 +95,23 @@ void showInterfaceAndExit()
 {
   blk("                                                                ");
   blu("=============================================================== ");
-  blu("pPoseKeepingX INTERFACE                                    ");
+  blu("pPoseKeepingX INTERFACE                                         ");
   blu("=============================================================== ");
   blk("                                                                ");
   showSynopsis();
   blk("                                                                ");
   blk("SUBSCRIPTIONS:                                                  ");
   blk("------------------------------------                            ");
-  blk("  NODE_MESSAGE = src_node=alpha,dest_node=bravo,var_name=FOO,   ");
-  blk("                 string_val=BAR                                 ");
+  blk("  NAV_HEADING_CPNVG              = [0,359]                      ");
+  blk("  NAV_HEADING                    = [0,359]                      ");
+  blk("  NAV_X                          = [-inf/+inf]                  ");
+  blk("  NAV_Y                          = [-inf/+inf]                  ");
+  blk("  THRUST_MODE_DIFFERENTIAL       = [true/false]                 ");
   blk("                                                                ");
   blk("PUBLICATIONS:                                                   ");
   blk("------------------------------------                            ");
-  blk("  Publications are determined by the node message content.      ");
+  blk("  DESIRED_THRUST_L   		= [-100,100]                   ");
+  blk("  DESIRED_THRUST_R   		= [-100,100]                   ");
   blk("                                                                ");
   exit(0);
 }

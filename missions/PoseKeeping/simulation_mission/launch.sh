@@ -4,8 +4,8 @@
 #  Part 1: Check for and handle command-line arguments
 #-------------------------------------------------------
 TIME_WARP=1
-POSITION=50,-50
-HEADING=45
+POSITION=20,-15
+HEADING=0
 COMMUNITY="logan"
 
 
