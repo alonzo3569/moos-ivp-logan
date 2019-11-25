@@ -100,7 +100,7 @@ ProcessConfig = pMarineViewer
   button_one = DEPLOY # DEPLOY_ALL=true
   button_one = MOOS_MANUAL_OVERRIDE_ALL=false #THRUST_MODE_DIFFERENTIAL_ALL=false
   button_two = RETURN # RETURN_ALL=true #MOOS_MANUAL_OVERRIDE_ALL=false #THRUST_MODE_DIFFERENTIAL_ALL=false
-  button_three  = POSEKEEPING #THRUST_MODE_DIFFERENTIAL_ALL=true #MOOS_MANUAL_OVERRIDE_ALL=true 
+  button_three  = POSEKEEPING #THRUST_MODE_DIFFERENTIAL_ALL=true 
 
   action  = MENU_KEY=deploy # DEPLOY = true # RETURN = false
   action+ = MENU_KEY=deploy # MOOS_MANUAL_OVERRIDE=false
