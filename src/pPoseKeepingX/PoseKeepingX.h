@@ -34,7 +34,6 @@ class PoseKeepingX : public AppCastingMOOSApp
   double  Distance(double, double, double, double);
   void    CheckMode(const Mode);
   double  CheckSpeed(double);
-  string  DoubleToString(double);
 
   //10.21
   void    ShowCompassHeading();

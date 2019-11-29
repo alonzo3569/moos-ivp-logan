@@ -388,15 +388,15 @@ bool PoseKeepingX::buildReport()
   actab.setColumnJustify(4, "left");
 
   //Desired Pose & Heading | Current Pose & Heading
-  actab << "Heading:" << DoubleToString(m_desired_heading);
+  actab << "Heading:" << doubleToString(m_desired_heading);
   actab << "Mode:" << mode.getmode();
-  actab << "(X,Y):" << DoubleToString(m_desired_x) + "," + DoubleToString(m_desired_y);
-  actab << "(X,Y):" << DoubleToString(m_osx) + "," + DoubleToString(m_osy);
-  actab << "Tolerance Radius:" << DoubleToString(m_tolerance_radius);
-  actab << "IMU Heading:" << DoubleToString(m_nav_heading);
-  actab << "" << "" << "Distance:" << DoubleToString(m_distance);
-  actab << "" << "" << "Thrust_lft:" << DoubleToString(mode.getthrustl());
-  actab << "" << "" << "Thrust_rgt:" << DoubleToString(mode.getthrustr());
+  actab << "(X,Y):" << doubleToString(m_desired_x) + "," + doubleToString(m_desired_y);
+  actab << "(X,Y):" << doubleToString(m_osx) + "," + doubleToString(m_osy);
+  actab << "Tolerance Radius:" << doubleToString(m_tolerance_radius);
+  actab << "IMU Heading:" << doubleToString(m_nav_heading);
+  actab << "" << "" << "Distance:" << doubleToString(m_distance);
+  actab << "" << "" << "Thrust_lft:" << doubleToString(mode.getthrustl());
+  actab << "" << "" << "Thrust_rgt:" << doubleToString(mode.getthrustr());
   m_msgs << actab.getFormattedString() << endl;
 
   //Compare GPS & IMU Heading
@@ -409,8 +409,8 @@ bool PoseKeepingX::buildReport()
   actab.setColumnJustify(0, "left");
   actab.setColumnJustify(2, "left");
 
-  actab << "GPS Heading(NAV_HEADING):" << DoubleToString(m_gps_heading); //subscribe nav_heading!
-  actab << "IMU Heading(NAV_HEADING_CPNVG):" << DoubleToString(m_nav_heading);
+  actab << "GPS Heading(NAV_HEADING):" << doubleToString(m_gps_heading); //subscribe nav_heading!
+  actab << "IMU Heading(NAV_HEADING_CPNVG):" << doubleToString(m_nav_heading);
   m_msgs << actab.getFormattedString() << endl;
 
   //Compare Thrust left & right
@@ -423,8 +423,8 @@ bool PoseKeepingX::buildReport()
   actab.setColumnJustify(0, "left");
   actab.setColumnJustify(2, "left");
 
-  actab << "DESIRED_THRUST_L:" << DoubleToString(mode.getthrustl());
-  actab << "DESIRED_THRUST_R:" << DoubleToString(mode.getthrustr());
+  actab << "DESIRED_THRUST_L:" << doubleToString(mode.getthrustl());
+  actab << "DESIRED_THRUST_R:" << doubleToString(mode.getthrustr());
   m_msgs << actab.getFormattedString() << endl;
 
   m_msgs <<  endl << "Simulation Mode: " << m_sim << endl;
@@ -485,18 +485,6 @@ double PoseKeepingX::CheckSpeed(double speed)
 }
 
 //------------------------------------------------------------
-// Procedure: DoubleToString
-//   Purpose: Change double to string
-string PoseKeepingX::DoubleToString(double input)
-{
-    stringstream msg;
-    string output;
-    msg << input;
-    msg >> output;
-    return(output);
-}
-
-//------------------------------------------------------------
 // Procedure: ShowCompassHeading
 //   Purpose: Using VIEW_VECTOR to show compass heading on pMarineViewer
 
@@ -521,9 +509,9 @@ void PoseKeepingX::ShowCompassHeading()
 void PoseKeepingX::PostPolygons(string mode)
 {
 	string spec = "format=radial,label=destination,vertex_color=blue,fill_color=grey90,vertex_size=0,edge_size=1,pts=24,snap=1";
-	spec += ",x=" + DoubleToString(m_desired_x);
-	spec += ",y=" + DoubleToString(m_desired_y);
-	spec += ",radius=" + DoubleToString(m_tolerance_radius);
+	spec += ",x=" + doubleToString(m_desired_x);
+	spec += ",y=" + doubleToString(m_desired_y);
+	spec += ",radius=" + doubleToString(m_tolerance_radius);
 
 	if(!m_active)
 	{
