@@ -63,12 +63,16 @@ void Mode::CalculateError()
 // Procedure: Output
 //   Purpose: Set thrust lft & rgt based on different mode 
 
-void Mode::Output(double thrust, double speed)
+void Mode::Output(double thrust, double speed, std::string simulation)
 {
 	if (m_mode == "Keepheading")
 	{
-		//m_thrust_l =  thrust;
-		//m_thrust_r = -thrust;
+		if(simulation == "true")
+		{
+			m_thrust_l =  thrust;
+			m_thrust_r = -thrust;
+			return;
+		}
 
 		if (thrust > 0)
 		{

@@ -27,11 +27,10 @@ ProcessConfig = ANTLER
   Run = uFldNodeBroker     @ NewConsole = false
 #ifdef SIM
   Run = uSimMarine         @ NewConsole = false
-  Run = pPoseKeeping	   @ NewConsole = false
 #else
   Run = iM200              @ NewConsole = false
-  Run = pPoseKeepingX	   @ NewConsole = false
 #endif
+  Run = pPoseKeepingX	   @ NewConsole = false
   Run = uXMS		   @ NewConsole = false
 }
 
@@ -263,6 +262,7 @@ ProcessConfig = pPoseKeepingX
   Kd        = 0.0
   Ki        = 0.0
   tolerance_radius = 5
+  sim = $(SIM_MODE)
 }
 
 

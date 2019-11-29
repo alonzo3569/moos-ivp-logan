@@ -12,7 +12,6 @@
 
 //logan
 #include "AngleUtils.h"
-#include "ColorPack.cpp"
 //10.21
 #include "XYVector.h"
 
@@ -48,6 +47,9 @@ PoseKeepingX::PoseKeepingX()
 
   //10.21experiment feature
   m_pre_heading = -1;
+
+  //11.25experiment
+  m_sim = "false";
 }
 
 //---------------------------------------------------------
@@ -77,11 +79,22 @@ bool PoseKeepingX::OnNewMail(MOOSMSG_LIST &NewMail)
      if(key == "FOO") 
        cout << "great!";
 
-     else if(key == "NAV_HEADING_CPNVG") //CPNVG
+     if(m_sim == "true")
      {
-	m_nav_heading = dval; 
+     	if(key == "NAV_HEADING") //CPNVG
+     	{
+		m_nav_heading = dval; 
+     	}
      }
-     else if(key == "NAV_X") 
+     else
+     {
+     	if(key == "NAV_HEADING_CPNVG") //CPNVG
+     	{
+		m_nav_heading = dval; 
+     	}
+     }
+
+     if(key == "NAV_X") 
      {
 	m_osx = dval; 
      }
@@ -223,10 +236,11 @@ bool PoseKeepingX::Iterate()
   speed = CheckSpeed(speed);
 
   // Calculate thrust left & right
-  mode.Output(thrust, speed);
+  mode.Output(thrust, speed, m_sim);
 
   // Check thrust value
-  mode.CheckValue();
+  if(m_sim == "fasle")
+    mode.CheckValue();
 
   // Notify
   Notify("DESIRED_THRUST_L", mode.getthrustl());
@@ -306,6 +320,12 @@ bool PoseKeepingX::OnStartUp()
         m_tolerance_radius = atof(value.c_str());
         handled = true;
       }
+
+      else if(param == "SIM") {
+        m_sim = value.c_str();
+        handled = true;
+      }
+
       if(!handled)
         reportUnhandledConfigWarning(orig);
     }
@@ -407,6 +427,7 @@ bool PoseKeepingX::buildReport()
   actab << "DESIRED_THRUST_R:" << DoubleToString(mode.getthrustr());
   m_msgs << actab.getFormattedString() << endl;
 
+  m_msgs <<  endl << "Simulation Mode: " << m_sim << endl;
 /* For debugging
   m_msgs <<  " m_curr_error: " << mode.geterror() << endl;
   m_msgs <<  "       m_mode: " << mode.getmode() << endl;

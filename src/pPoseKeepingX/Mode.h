@@ -44,7 +44,7 @@ public:
 
     // action
     void CalculateError();
-    void Output(double, double);
+    void Output(double, double, string);
     void CheckValue();
 };
 

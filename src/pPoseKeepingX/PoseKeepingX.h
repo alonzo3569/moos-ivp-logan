@@ -74,6 +74,9 @@ class PoseKeepingX : public AppCastingMOOSApp
 
   // 10.21experiment feature
   double m_pre_heading;
+
+  // 11.25experiment
+  std::string m_sim;
 };
 
 #endif

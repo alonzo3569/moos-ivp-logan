@@ -3,7 +3,7 @@
 #-------------------------------------------------------
 #  Part 1: Check for and handle command-line arguments
 #-------------------------------------------------------
-SHORE_IP=192.168.1.214
+SHORE_IP="localhost" #192.168.1.214
 SHORE_LISTEN="9300"
 TIME_WARP=1
 POSITION=20,-15
@@ -90,6 +90,7 @@ for ARGI; do
         echo "Just building files; no vehicle launch."
     elif [ "${ARGI}" = "--sim" -o "${ARGI}" = "-s" ] ; then
         SIM="SIM"
+	SIM_MODE="true"
         echo "Simulation mode ON."
 
     else 
@@ -122,7 +123,8 @@ nsplug meta_vehicle.moos targ_${VNAME}.moos -f \
     SHORE_LISTEN=$SHORE_LISTEN   \
     SHORE_IP=$SHORE_IP           \
     M200_IP=$M200_IP             \
-    $SIM
+    $SIM                         \
+    SIM_MODE=$SIM_MODE
 
 
 if [ ${JUST_BUILD} = "yes" ] ; then

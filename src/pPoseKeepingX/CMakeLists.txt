@@ -15,10 +15,10 @@ ADD_EXECUTABLE(pPoseKeepingX ${SRC})
 
 TARGET_LINK_LIBRARIES(pPoseKeepingX
   ${MOOS_LIBRARIES}
+  geometry
   mbutil
   apputil
   m
   pthread
-  geometry
 )
 
