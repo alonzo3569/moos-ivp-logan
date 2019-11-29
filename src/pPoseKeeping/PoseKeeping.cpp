@@ -175,6 +175,10 @@ bool PoseKeeping::Iterate()
   // Filter: CheckCompassHeading
   bool result = Filter();
   if(!result){
+    mode.setthrustl(0);
+    mode.setthrustr(0);
+    Notify("DESIRED_THRUST_L", mode.getthrustl());
+    Notify("DESIRED_THRUST_R", mode.getthrustr());
     PublishFreshMOOSVariables();
     AppCastingMOOSApp::PostReport();
     return(true);}
