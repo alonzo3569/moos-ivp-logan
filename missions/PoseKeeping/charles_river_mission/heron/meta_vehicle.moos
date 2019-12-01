@@ -31,7 +31,6 @@ ProcessConfig = ANTLER
   Run = iM200              @ NewConsole = false
 #endif
   Run = pPoseKeepingX	   @ NewConsole = false
-  Run = uXMS		   @ NewConsole = false
 }
 
 //------------------------------------------
@@ -222,31 +221,6 @@ ProcessConfig = iM200
   MAX_RUDDER     = 100.0        // Rudder value will be capped to this, +/-
   MAX_THRUST     = 100.0        // Thrust value to each motor will be
                                // capped to this value, +/-
-}
-
-//------------------------------------------
-// uXMS config block
-ProcessConfig = uXMS 
-{
-  AppTick   = 4                                                 
-  CommsTick = 4
-  var = DESIRED_THRUST_R, DESIRED_THRUST_L, THRUST_MODE_DIFFERENTIAL, DISTANCE, CURR_MODE, SPEED, THRUST, POSITION, DESIRED_HEADING, NAV_HEADING, NAV_HEADING_CPNVG
-  history_var = DESIRED_THRUST_R
-}
-
-//------------------------------------------
-// pPoseKeeping config block
-ProcessConfig = pPoseKeeping
-{
-  AppTick   = 4                                                 
-  CommsTick = 4
-
-  position  = $(POS)
-  heading   = $(HEADING)
-  Kp        = 1.2
-  Kd        = 0.0
-  Ki        = 0.0
-  tolerance_radius = 5
 }
 
 //------------------------------------------

@@ -239,4 +239,5 @@ ProcessConfig = pPoseKeepingX
   Kd        = 0.0
   Ki        = 0.0
   tolerance_radius = 5
+  sim       = true 
 }
