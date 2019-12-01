@@ -82,6 +82,7 @@ void showExampleConfigAndExit()
   blk("  Kd        = 0.0                                               ");
   blk("  Ki        = 0.0                                               ");
   blk("  tolerance_radius = 5                                          ");
+  blk("  sim       = false                                             ");
   blk("}                                                               ");
   blk("                                                                ");
   exit(0);

@@ -9,7 +9,7 @@
 #define PoseKeepingX_HEADER
 
 #include "MOOS/libMOOS/Thirdparty/AppCasting/AppCastingMOOSApp.h"
-#include "Mode.h"
+#include "PoseKeeping_Mode.h"
 #include <memory>
 
 class PoseKeepingX : public AppCastingMOOSApp
