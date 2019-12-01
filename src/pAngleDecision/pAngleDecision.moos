@@ -1,9 +1,0 @@
-//------------------------------------------------
-// pAngleDecision config block
-
-ProcessConfig = pAngleDecision
-{
-   AppTick   = 4
-   CommsTick = 4
-}
-

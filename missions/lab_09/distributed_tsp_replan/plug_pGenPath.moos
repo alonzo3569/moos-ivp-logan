@@ -1,7 +1,0 @@
-//------------------------------------------------
-// pGenPath configuration block from plugin
-ProcessConfig = pGenPath
-{
-   AppTick   = 4
-   CommsTick = 4
-}
