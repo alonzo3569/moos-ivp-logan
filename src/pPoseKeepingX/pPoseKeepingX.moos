@@ -7,5 +7,12 @@ ProcessConfig = pPoseKeepingX
   CommsTick = 4
 
   // pPoseKeepingX configuration here
+  position  = 20,-15                                            
+  heading   = 180                                               
+  Kp        = 1.2                                               
+  Kd        = 0.0                                               
+  Ki        = 0.0                                               
+  tolerance_radius = 5                                          
+  sim       = false                                             
 }
 
