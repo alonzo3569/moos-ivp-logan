@@ -2,16 +2,14 @@
 
 My own **MOOS-Ivp** tree which currently includes:
 
- - **pPoseKeepingX**
- - **uSimMarine_HWGR**
+ - pPoseKeepingX
+ - uSimMarine_HWGR
 
 ## Install
 
 To install my MOOS IvP tree on your device,
-```shell
- 1. git clone https://github.com/alonzo3569/moos-ivp-logan.git`
- 2. cd ~/moos-ivp-logan`
-```
+ 1. `git clone https://github.com/alonzo3569/moos-ivp-logan.git`
+ 2. `cd ~/moos-ivp-logan`
  3. Run `./build.sh`
  4. Add `bin/` to you shell path by editing `~/.bashrc`
 
