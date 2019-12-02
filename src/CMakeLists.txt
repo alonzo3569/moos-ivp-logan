@@ -15,7 +15,6 @@ INCLUDE_DIRECTORIES(${LOCAL_LIBRARY_DIRS})
 # List the subdirectories to build...
 #============================================================================
 ADD_SUBDIRECTORY(lib_behaviors-alonzo)
-ADD_SUBDIRECTORY(pPoseKeeping)
 ADD_SUBDIRECTORY(pPoseKeepingX)
 ADD_SUBDIRECTORY(uSimMarineX_HWGR)
 
