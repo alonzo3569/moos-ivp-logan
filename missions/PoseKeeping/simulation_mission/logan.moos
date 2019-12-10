@@ -76,14 +76,14 @@ ProcessConfig = uSimMarine
   CommsTick	= 4
 
   start_x       = 0
-  start_y       = -20
+  start_y       = -45
   start_heading = 180
   start_speed   = 0
 
   prefix        = NAV
 
   //drift_x       = 0.3
-  //drift_y       = 0.3
+  drift_y       = 0.3
 
   turn_rate     = 40
   thrust_map    = 0:0, 20:1, 40:2, 60:3, 80:4, 100:5

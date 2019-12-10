@@ -523,6 +523,8 @@ bool USM_MOOSApp::Iterate()
   }
 
   else if(m_model.usingDualState() && m_model.usingWrongHeadingState() && !m_model.usingDriftState()) {
+    Notify("RD_X",m_model.getNodeRecord().getX());
+    Notify("RDGT_X",m_model.getNodeRecordGT().getX());
     postNodeRecordUpdate(m_sim_prefix+"_GT", record_gt);
     postNodeRecordUpdate_wrong_heading_state(m_sim_prefix, record, record_gt);    
   }
